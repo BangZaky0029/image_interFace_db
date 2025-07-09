@@ -35,8 +35,13 @@ export function addItem() {
           <button type="button" class="image-brand-btn" data-item-id="${itemCounter}" data-brand="MNK">MNK</button>
         </div>
         <input type="hidden" id="id_image_${itemCounter}" required />
+        <div class="image-search-container" id="image_search_container_${itemCounter}" style="display: none;">
+          <input type="text" id="image_search_input_${itemCounter}" placeholder="Cari berdasarkan nama file..." class="image-search-input">
+          <div class="search-results" id="search_results_${itemCounter}"></div>
+        </div>
         <div class="selected-image-info" id="selected_image_info_${itemCounter}" style="display: none;">
           <span class="selected-image-label"></span>
+          <div class="selected-image-thumbnail" id="selected_image_thumbnail_${itemCounter}"></div>
         </div>
       </div>
     </div>
@@ -106,7 +111,7 @@ function setupItemEventListeners(itemId) {
       const brand = e.target.dataset.brand;
       const itemId = e.target.dataset.itemId;
       console.log(`Selected brand: ${brand} for item ${itemId}`);
-      showImagePopup(brand, itemId);
+      showImageSearch(brand, itemId);
     });
   });
 }
@@ -119,8 +124,8 @@ function selectProductType(itemId, type, targetBtn) {
   document.getElementById(`type_product_${itemId}`).value = type;
 }
 
-// Fungsi untuk menampilkan pop-up gambar
-async function showImagePopup(brand, itemId) {
+// Fungsi untuk menampilkan pencarian gambar
+async function showImageSearch(brand, itemId) {
   try {
     // Fetch images from API
     const response = await fetch('http://localhost:5000/images');
@@ -142,8 +147,26 @@ async function showImagePopup(brand, itemId) {
       return;
     }
     
-    // Create and show popup
-    createImagePopup(brandImages, brand, itemId);
+    // Show search container
+    const searchContainer = document.getElementById(`image_search_container_${itemId}`);
+    const searchInput = document.getElementById(`image_search_input_${itemId}`);
+    const searchResults = document.getElementById(`search_results_${itemId}`);
+    
+    if (searchContainer && searchInput && searchResults) {
+      searchContainer.style.display = 'block';
+      searchInput.focus();
+      
+      // Clear previous results
+      searchResults.innerHTML = '';
+      
+      // Store images data for this item
+      searchInput.dataset.brand = brand;
+      searchInput.dataset.images = JSON.stringify(brandImages);
+      
+      // Add search event listener
+      searchInput.removeEventListener('input', handleImageSearch);
+      searchInput.addEventListener('input', handleImageSearch);
+    }
     
   } catch (error) {
     console.error('Error fetching images:', error);
@@ -155,70 +178,13 @@ async function showImagePopup(brand, itemId) {
   }
 }
 
-// Fungsi untuk membuat pop-up gambar
-function createImagePopup(images, brand, itemId) {
-  // Remove existing popup if any
-  const existingPopup = document.getElementById('imagePopup');
-  if (existingPopup) {
-    existingPopup.remove();
-  }
-  
-  // Create popup overlay
-  const popup = document.createElement('div');
-  popup.id = 'imagePopup';
-  popup.className = 'image-popup-overlay';
-  
-  // Create popup content
-  const popupContent = document.createElement('div');
-  popupContent.className = 'image-popup-content';
-  
-  // Create header
-  const header = document.createElement('div');
-  header.className = 'image-popup-header';
-  header.innerHTML = `
-    <h3>Pilih Gambar ${brand}</h3>
-    <button class="image-popup-close" onclick="closeImagePopup()">&times;</button>
-  `;
-  
-  // Create images grid
-  const imagesGrid = document.createElement('div');
-  imagesGrid.className = 'images-grid';
-  
-  images.forEach(image => {
-    const imageItem = document.createElement('div');
-    imageItem.className = 'image-item';
-    
-    // Extract filename from path for label
-    const filename = image.image_name || extractFilenameFromPath(image.image_path);
-    
-    // Use image_url from backend if available, otherwise fallback to path conversion
-    const imageUrl = image.image_url || getImageUrl(image.image_path);
-    
-    imageItem.innerHTML = `
-      <div class="image-container">
-        <img src="${imageUrl}" alt="${filename}" 
-             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIE5vdCBGb3VuZDwvdGV4dD48L3N2Zz4='" />
-        <div class="image-label">${filename}</div>
-      </div>
-      <button class="select-image-btn" onclick="selectImage(${image.id_image}, '${filename}', ${itemId})">Pilih</button>
-    `;
-    
-    imagesGrid.appendChild(imageItem);
-  });
-  
-  // Assemble popup
-  popupContent.appendChild(header);
-  popupContent.appendChild(imagesGrid);
-  popup.appendChild(popupContent);
-  
-  // Add to document
-  document.body.appendChild(popup);
-  
-  // Show popup with animation
-  setTimeout(() => {
-    popup.classList.add('show');
-  }, 10);
-}
+// Fungsi popup yang tidak lagi digunakan - dihapus untuk fitur pencarian baru
+// createImagePopup, groupImagesByMotif, showMotifImages, displayImages, filterImagesBySearch
+// telah digantikan dengan fitur pencarian inline
+
+// Fungsi-fungsi popup yang tidak lagi digunakan telah dihapus
+// groupImagesByMotif, showMotifImages, displayImages, filterImagesBySearch
+// digantikan dengan fitur pencarian inline yang lebih sederhana
 
 // Fungsi untuk mengekstrak nama file dari path
 function extractFilenameFromPath(path) {
@@ -228,7 +194,7 @@ function extractFilenameFromPath(path) {
   return filename.replace(/\.[^/.]+$/, ''); // Remove extension
 }
 
-// Fungsi untuk mendapatkan URL gambar yang benar
+// Fungsi untuk mendapatkan URL gambar asli
 function getImageUrl(imagePath) {
   if (!imagePath) {
     console.warn('Image path is empty or null');
@@ -281,8 +247,47 @@ function getImageUrl(imagePath) {
   return `http://localhost:5000/static/images/${filename}`;
 }
 
-// Fungsi untuk memilih gambar
-window.selectImage = function(imageId, imageName, itemId) {
+// Fungsi untuk menangani pencarian gambar
+function handleImageSearch(event) {
+  const searchInput = event.target;
+  const searchTerm = searchInput.value.toLowerCase().trim();
+  const itemId = searchInput.id.split('_').pop();
+  const searchResults = document.getElementById(`search_results_${itemId}`);
+  const images = JSON.parse(searchInput.dataset.images || '[]');
+  
+  // Clear previous results
+  searchResults.innerHTML = '';
+  
+  if (searchTerm.length === 0) {
+    return;
+  }
+  
+  // Filter images by filename
+  const filteredImages = images.filter(image => {
+    const imageName = (image.image_name || '').toLowerCase();
+    return imageName.includes(searchTerm);
+  });
+  
+  if (filteredImages.length === 0) {
+    searchResults.innerHTML = '<div class="no-results">Tidak ada file yang ditemukan</div>';
+    return;
+  }
+  
+  // Display search results
+  filteredImages.forEach(image => {
+    const filename = image.image_name || extractFilenameFromPath(image.image_path);
+    const resultItem = document.createElement('div');
+    resultItem.className = 'search-result-item';
+    resultItem.innerHTML = `
+      <span class="result-filename">${filename}</span>
+      <button class="select-result-btn" onclick="selectImageFromSearch(${image.id_image}, '${filename}', '${image.image_path}', ${itemId})">Pilih</button>
+    `;
+    searchResults.appendChild(resultItem);
+  });
+}
+
+// Fungsi untuk memilih gambar dari hasil pencarian
+window.selectImageFromSearch = function(imageId, imageName, imagePath, itemId) {
   // Set hidden input value
   const hiddenInput = document.getElementById(`id_image_${itemId}`);
   if (hiddenInput) {
@@ -292,28 +297,57 @@ window.selectImage = function(imageId, imageName, itemId) {
   // Update selected image info
   const imageInfo = document.getElementById(`selected_image_info_${itemId}`);
   const imageLabel = imageInfo.querySelector('.selected-image-label');
+  const imageThumbnail = document.getElementById(`selected_image_thumbnail_${itemId}`);
   
   if (imageInfo && imageLabel) {
     imageLabel.textContent = `Terpilih: ${imageName}`;
     imageInfo.style.display = 'block';
   }
   
-  // Close popup
-  closeImagePopup();
+  // Show thumbnail
+  if (imageThumbnail) {
+    const imageUrl = getImageUrl(imagePath);
+    imageThumbnail.innerHTML = `<img src="${imageUrl}" alt="${imageName}" class="thumbnail-image" onerror="this.style.display='none'">`;
+  }
+  
+  // Hide search container
+  const searchContainer = document.getElementById(`image_search_container_${itemId}`);
+  if (searchContainer) {
+    searchContainer.style.display = 'none';
+  }
   
   showNotification(`Gambar ${imageName} berhasil dipilih`, 'success');
 };
 
-// Fungsi untuk menutup pop-up
-window.closeImagePopup = function() {
-  const popup = document.getElementById('imagePopup');
-  if (popup) {
-    popup.classList.remove('show');
-    setTimeout(() => {
-      popup.remove();
-    }, 300);
+// Fungsi untuk memilih gambar (untuk backward compatibility)
+window.selectImage = function(imageId, imageName, itemId, imagePath = null) {
+  // Set hidden input value
+  const hiddenInput = document.getElementById(`id_image_${itemId}`);
+  if (hiddenInput) {
+    hiddenInput.value = imageId;
   }
+  
+  // Update selected image info
+  const imageInfo = document.getElementById(`selected_image_info_${itemId}`);
+  const imageLabel = imageInfo.querySelector('.selected-image-label');
+  const imageThumbnail = document.getElementById(`selected_image_thumbnail_${itemId}`);
+  
+  if (imageInfo && imageLabel) {
+    imageLabel.textContent = `Terpilih: ${imageName}`;
+    imageInfo.style.display = 'block';
+  }
+  
+  // Show thumbnail if imagePath is provided
+  if (imagePath && imageThumbnail) {
+    const imageUrl = getImageUrl(imagePath);
+    imageThumbnail.innerHTML = `<img src="${imageUrl}" alt="${imageName}" class="thumbnail-image" onerror="this.style.display='none'">`;
+  }
+  
+  showNotification(`Gambar ${imageName} berhasil dipilih`, 'success');
 };
+
+// Fungsi closeImagePopup dan showMotifImages tidak lagi digunakan
+// telah digantikan dengan fitur pencarian inline
 
 // Fungsi untuk menampilkan notifikasi
 function showNotification(message, type = 'info') {

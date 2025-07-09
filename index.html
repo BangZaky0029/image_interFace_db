@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Order Dashboard</title>
-  <link rel="stylesheet" href="./style/main.css" />
-  <link rel="stylesheet" href="./style/dashboard.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="http://127.0.0.1:5000/style/main.css" />
 </head>
 <body>
   <div class="container">
@@ -35,8 +37,8 @@
     </main>
   </div>
 
-  <script src="./config/endpoint.js"></script>
-  <script type="module" src="./js/POST/main.js"></script>
+  <script src="http://127.0.0.1:5000/config/endpoint.js"></script>
+  <script type="module" src="http://127.0.0.1:5000/js/POST/main.js"></script>
   <script>
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
@@ -85,7 +87,7 @@
                 window.initializeForm();
               } else {
                 // Remove any existing form initialization script
-                const existingScript = document.querySelector('script[src="./js/formInit.js"]');
+                const existingScript = document.querySelector('script[src="http://127.0.0.1:5000/js/formInit.js"]');
                 if (existingScript) {
                   existingScript.remove();
                 }
@@ -93,7 +95,7 @@
                 // Load form initialization script
                 const script = document.createElement('script');
                 script.type = 'module';
-                script.src = './js/formInit.js';
+                script.src = 'http://127.0.0.1:5000/js/formInit.js';
                 script.onload = () => {
                   console.log('Form initialization script loaded');
                 };
@@ -111,7 +113,7 @@
               if (!window.initDashboard) {
                 const script = document.createElement('script');
                 script.type = 'module';
-                script.src = './js/GET/dashboard.js';
+                script.src = 'http://127.0.0.1:5000/js/GET/dashboard.js';
                 script.onload = () => {
                   console.log('Dashboard script loaded');
                   if (window.initDashboard) {

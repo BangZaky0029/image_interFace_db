@@ -274,33 +274,7 @@ function initializeForm() {
   });
 }
 
-// Function to enable all inputs and buttons in step 1
-function enableStep1Inputs() {
-  const step1 = document.getElementById('step1');
-  if (step1) {
-    // Enable all input elements
-    const inputs = step1.querySelectorAll('input, select, textarea');
-    inputs.forEach(input => {
-      input.disabled = false;
-      input.readOnly = false;
-    });
-    
-    // Enable all buttons
-    const buttons = step1.querySelectorAll('button');
-    buttons.forEach(button => {
-      button.disabled = false;
-    });
-    
-    // Enable all clickable elements
-    const clickableElements = step1.querySelectorAll('[onclick], .clickable, .selectable');
-    clickableElements.forEach(element => {
-      element.style.pointerEvents = 'auto';
-      element.disabled = false;
-    });
-    
-    console.log('Step 1 inputs, buttons, and clickable elements enabled for editing');
-  }
-}
+
 
 // Function to update progress indicator
 function updateProgressIndicator(activeStep) {

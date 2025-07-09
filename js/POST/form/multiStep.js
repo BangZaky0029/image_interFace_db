@@ -61,7 +61,41 @@ export function transitionToStep1() {
       step1.classList.add('active');
       step1.style.opacity = '1';
       progress?.classList.remove('step-2');
+      
+      // Enable all inputs in step 1 for editing
+      enableStep1Inputs();
     }, 300);
+  }
+}
+
+// Function to enable all inputs and buttons in step 1
+function enableStep1Inputs() {
+  const step1 = document.getElementById('step1');
+  if (step1) {
+    // Enable all input elements
+    const inputs = step1.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      input.disabled = false;
+      input.readOnly = false;
+      input.style.pointerEvents = 'auto';
+      input.style.opacity = '1';
+    });
+    
+    // Enable all buttons
+    const buttons = step1.querySelectorAll('button');
+    buttons.forEach(button => {
+      button.disabled = false;
+      button.style.pointerEvents = 'auto';
+    });
+    
+    // Enable all clickable elements
+    const clickableElements = step1.querySelectorAll('[onclick], .clickable, .selectable');
+    clickableElements.forEach(element => {
+      element.style.pointerEvents = 'auto';
+      element.disabled = false;
+    });
+    
+    console.log('Step 1 inputs enabled for editing after transition');
   }
 }
 
