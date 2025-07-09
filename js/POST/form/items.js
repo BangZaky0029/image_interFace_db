@@ -203,31 +203,48 @@ function getImageUrl(imagePath) {
   
   console.log('Original image path:', imagePath);
   
-  // Normalize path separators and remove any drive letters
+  // Normalize path separators
   let normalizedPath = imagePath.replace(/\\/g, '/');
   
-  // Remove any absolute path prefixes
-  // Handle D:\assets\database_images\ or D:/assets/database_images/
+  // Handle different path formats:
+  // 1. Full path: D:/assets/database_images/Marsoto/DUBAIHM0045.jpg
+  // 2. Relative path: Marsoto/DUBAIHM0045.jpg
+  // 3. Just filename: DUBAIHM0045.jpg
+  
+  // Remove drive letter and assets/database_images prefix if present
   if (normalizedPath.includes('database_images/')) {
     const parts = normalizedPath.split('database_images/');
     if (parts.length > 1) {
       const relativePath = parts[1];
       const finalUrl = `http://localhost:5000/static/images/${relativePath}`;
-      console.log('Generated URL:', finalUrl);
+      console.log('Generated URL from database_images path:', finalUrl);
       return finalUrl;
     }
   }
   
-  // If path starts with drive letter, extract everything after the last known folder
+  // Handle paths that start with drive letter but don't have database_images
+  // Example: D:assetsdatabase_imagesMarsotoDUBAIHM0045.jpg (malformed path)
   if (normalizedPath.match(/^[A-Za-z]:/)) {
+    // Try to extract the brand and filename from malformed paths
+    // Look for brand patterns (Marsoto, MNK) in the path
+    const brandMatch = normalizedPath.match(/(Marsoto|MNK)([A-Z0-9]+\.[a-z]+)$/i);
+    if (brandMatch) {
+      const brand = brandMatch[1];
+      const filename = brandMatch[2];
+      const relativePath = `${brand}/${filename}`;
+      const finalUrl = `http://localhost:5000/static/images/${relativePath}`;
+      console.log('Generated URL from malformed path:', finalUrl);
+      return finalUrl;
+    }
+    
     // Try to find common folder patterns and extract relative path
     const pathParts = normalizedPath.split('/');
     let startIndex = -1;
     
-    // Look for common folder names that indicate start of relative path
-    const folderMarkers = ['Marsoto', 'MNK', 'assets', 'images'];
+    // Look for brand folder names
+    const brandFolders = ['Marsoto', 'MNK'];
     for (let i = 0; i < pathParts.length; i++) {
-      if (folderMarkers.includes(pathParts[i])) {
+      if (brandFolders.includes(pathParts[i])) {
         startIndex = i;
         break;
       }
@@ -236,15 +253,33 @@ function getImageUrl(imagePath) {
     if (startIndex >= 0) {
       const relativePath = pathParts.slice(startIndex).join('/');
       const finalUrl = `http://localhost:5000/static/images/${relativePath}`;
-      console.log('Generated URL from drive path:', finalUrl);
+      console.log('Generated URL from brand folder path:', finalUrl);
       return finalUrl;
     }
   }
   
-  // Last resort: use the filename only
+  // If path already looks like a relative path (brand/filename)
+  if (normalizedPath.match(/^(Marsoto|MNK)\//)) {
+    const finalUrl = `http://localhost:5000/static/images/${normalizedPath}`;
+    console.log('Generated URL from relative path:', finalUrl);
+    return finalUrl;
+  }
+  
+  // Last resort: assume it's just a filename and try to determine brand from filename
   const filename = normalizedPath.split('/').pop();
-  console.warn('Using filename only for path:', imagePath);
-  return `http://localhost:5000/static/images/${filename}`;
+  
+  // Try to determine brand from filename pattern
+  if (filename.match(/^(DUBAI|TURKI|INDIA)/i)) {
+    // These patterns typically belong to Marsoto
+    const finalUrl = `http://localhost:5000/static/images/Marsoto/${filename}`;
+    console.log('Generated URL assuming Marsoto brand:', finalUrl);
+    return finalUrl;
+  } else {
+    // Default to MNK for other patterns
+    const finalUrl = `http://localhost:5000/static/images/MNK/${filename}`;
+    console.log('Generated URL assuming MNK brand:', finalUrl);
+    return finalUrl;
+  }
 }
 
 // Fungsi untuk menangani pencarian gambar
@@ -276,18 +311,20 @@ function handleImageSearch(event) {
   // Display search results
   filteredImages.forEach(image => {
     const filename = image.image_name || extractFilenameFromPath(image.image_path);
+    // Use image_url if available, otherwise fallback to converting image_path
+    const imageUrl = image.image_url || getImageUrl(image.image_path);
     const resultItem = document.createElement('div');
     resultItem.className = 'search-result-item';
     resultItem.innerHTML = `
       <span class="result-filename">${filename}</span>
-      <button class="select-result-btn" onclick="selectImageFromSearch(${image.id_image}, '${filename}', '${image.image_path}', ${itemId})">Pilih</button>
+      <button class="select-result-btn" onclick="selectImageFromSearch(${image.id_image}, '${filename}', '${imageUrl}', ${itemId})">Pilih</button>
     `;
     searchResults.appendChild(resultItem);
   });
 }
 
 // Fungsi untuk memilih gambar dari hasil pencarian
-window.selectImageFromSearch = function(imageId, imageName, imagePath, itemId) {
+window.selectImageFromSearch = function(imageId, imageName, imageUrl, itemId) {
   // Set hidden input value
   const hiddenInput = document.getElementById(`id_image_${itemId}`);
   if (hiddenInput) {
@@ -300,14 +337,33 @@ window.selectImageFromSearch = function(imageId, imageName, imagePath, itemId) {
   const imageThumbnail = document.getElementById(`selected_image_thumbnail_${itemId}`);
   
   if (imageInfo && imageLabel) {
-    imageLabel.textContent = `Terpilih: ${imageName}`;
+    imageLabel.textContent = `Terpilih: ${imageName} (ID: ${imageId})`;
     imageInfo.style.display = 'block';
   }
   
-  // Show thumbnail
+  // Show enhanced preview with larger thumbnail
   if (imageThumbnail) {
-    const imageUrl = getImageUrl(imagePath);
-    imageThumbnail.innerHTML = `<img src="${imageUrl}" alt="${imageName}" class="thumbnail-image" onerror="this.style.display='none'">`;
+    // Use the provided imageUrl directly (already converted by API)
+    const finalImageUrl = imageUrl || getImageUrl(imageName); // Fallback to getImageUrl if no URL provided
+    
+    // Show loading state first
+    imageThumbnail.innerHTML = `
+      <div class="image-preview-container">
+        <div class="image-loading-spinner">
+          <div class="spinner"></div>
+          <span>Memuat gambar...</span>
+        </div>
+        <img src="${finalImageUrl}" alt="${imageName}" class="preview-image" style="display: none;" 
+             onload="this.style.display='block'; this.parentElement.querySelector('.image-loading-spinner').style.display='none';" 
+             onerror="this.style.display='none'; this.parentElement.querySelector('.image-loading-spinner').style.display='none'; this.parentElement.querySelector('.image-error').style.display='block';">
+        <div class="image-error" style="display: none;">Gambar tidak dapat dimuat</div>
+        <div class="image-info">
+          <span class="image-id">ID: ${imageId}</span>
+          <span class="image-name">${imageName}</span>
+        </div>
+        <button type="button" class="preview-fullsize-btn" onclick="showFullSizePreview('${finalImageUrl}', '${imageName}', ${imageId})">Lihat Ukuran Penuh</button>
+      </div>
+    `;
   }
   
   // Hide search container
@@ -320,7 +376,7 @@ window.selectImageFromSearch = function(imageId, imageName, imagePath, itemId) {
 };
 
 // Fungsi untuk memilih gambar (untuk backward compatibility)
-window.selectImage = function(imageId, imageName, itemId, imagePath = null) {
+window.selectImage = function(imageId, imageName, itemId, imagePathOrUrl = null) {
   // Set hidden input value
   const hiddenInput = document.getElementById(`id_image_${itemId}`);
   if (hiddenInput) {
@@ -333,14 +389,33 @@ window.selectImage = function(imageId, imageName, itemId, imagePath = null) {
   const imageThumbnail = document.getElementById(`selected_image_thumbnail_${itemId}`);
   
   if (imageInfo && imageLabel) {
-    imageLabel.textContent = `Terpilih: ${imageName}`;
+    imageLabel.textContent = `Terpilih: ${imageName} (ID: ${imageId})`;
     imageInfo.style.display = 'block';
   }
   
-  // Show thumbnail if imagePath is provided
-  if (imagePath && imageThumbnail) {
-    const imageUrl = getImageUrl(imagePath);
-    imageThumbnail.innerHTML = `<img src="${imageUrl}" alt="${imageName}" class="thumbnail-image" onerror="this.style.display='none'">`;
+  // Show enhanced preview with larger thumbnail if imagePathOrUrl is provided
+  if (imagePathOrUrl && imageThumbnail) {
+    // Check if it's already a URL or needs conversion
+    const imageUrl = imagePathOrUrl.startsWith('http') ? imagePathOrUrl : getImageUrl(imagePathOrUrl);
+    
+    // Show loading state first
+    imageThumbnail.innerHTML = `
+      <div class="image-preview-container">
+        <div class="image-loading-spinner">
+          <div class="spinner"></div>
+          <span>Memuat gambar...</span>
+        </div>
+        <img src="${imageUrl}" alt="${imageName}" class="preview-image" style="display: none;" 
+             onload="this.style.display='block'; this.parentElement.querySelector('.image-loading-spinner').style.display='none';" 
+             onerror="this.style.display='none'; this.parentElement.querySelector('.image-loading-spinner').style.display='none'; this.parentElement.querySelector('.image-error').style.display='block';">
+        <div class="image-error" style="display: none;">Gambar tidak dapat dimuat</div>
+        <div class="image-info">
+          <span class="image-id">ID: ${imageId}</span>
+          <span class="image-name">${imageName}</span>
+        </div>
+        <button type="button" class="preview-fullsize-btn" onclick="showFullSizePreview('${imageUrl}', '${imageName}', ${imageId})">Lihat Ukuran Penuh</button>
+      </div>
+    `;
   }
   
   showNotification(`Gambar ${imageName} berhasil dipilih`, 'success');
@@ -372,6 +447,61 @@ function showNotification(message, type = 'info') {
     }, 300);
   }, 3000);
 }
+
+// Fungsi untuk menampilkan preview ukuran penuh
+window.showFullSizePreview = function(imageUrl, imageName, imageId) {
+  // Create modal overlay
+  const modal = document.createElement('div');
+  modal.className = 'image-preview-modal';
+  modal.innerHTML = `
+    <div class="modal-overlay" onclick="closeFullSizePreview()">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Preview Gambar</h3>
+          <button class="modal-close-btn" onclick="closeFullSizePreview()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-loading-spinner">
+            <div class="spinner"></div>
+            <span>Memuat gambar...</span>
+          </div>
+          <img src="${imageUrl}" alt="${imageName}" class="fullsize-preview-image" style="display: none;" 
+               onload="this.style.display='block'; this.parentElement.querySelector('.modal-loading-spinner').style.display='none';" 
+               onerror="this.style.display='none'; this.parentElement.querySelector('.modal-loading-spinner').style.display='none'; this.parentElement.querySelector('.image-error').style.display='block';">
+          <div class="image-error" style="display: none;">Gambar tidak dapat dimuat</div>
+          <div class="image-details">
+            <p><strong>ID:</strong> ${imageId}</p>
+            <p><strong>Nama:</strong> ${imageName}</p>
+            <p><strong>URL:</strong> <a href="${imageUrl}" target="_blank">${imageUrl}</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Add modal to document
+  document.body.appendChild(modal);
+  
+  // Show modal with animation
+  setTimeout(() => {
+    modal.classList.add('show');
+  }, 10);
+  
+  // Store modal reference for cleanup
+  window.currentImageModal = modal;
+};
+
+// Fungsi untuk menutup preview ukuran penuh
+window.closeFullSizePreview = function() {
+  const modal = window.currentImageModal;
+  if (modal) {
+    modal.classList.remove('show');
+    setTimeout(() => {
+      modal.remove();
+      window.currentImageModal = null;
+    }, 300);
+  }
+};
 
 // Export untuk digunakan di main.js
 export { addItem as addItemFunction, removeItem as removeItemFunction };
