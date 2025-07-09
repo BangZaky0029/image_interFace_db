@@ -1,0 +1,61 @@
+<!-- HTML File: form.html -->
+<link rel="stylesheet" href="../style/style_view/form.css">
+
+<div id="successMessage" class="message success-message" style="display: none;"></div>
+<div id="errorMessage" class="message error-message" style="display: none;"></div>
+
+<div class="form-progress">
+  <div class="step" id="step-indicator-1">1. Info Order</div>
+  <div class="step" id="step-indicator-2">2. Detail Item</div>
+</div>
+
+<form id="orderForm">
+  <!-- STEP 1 -->
+  <div id="step1" class="form-step active">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="id_admin">ID Admin:</label>
+        <input type="text" id="id_admin" value="1" />
+      </div>
+      <div class="form-group">
+        <label for="platform">Platform:</label>
+        <select id="platform">
+          <option value="Shopee">Shopee</option>
+          <option value="TikTok Shop" selected>TikTok</option>
+          <option value="Tokopedia">Tokopedia</option>
+          <option value="Lazada">Lazada</option>
+          <option value="WhatsApp">WhatsApp</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="nama_customer">Nama Customer:</label>
+        <input type="text" id="nama_customer" />
+      </div>
+      <div class="form-group">
+        <label for="deadline">Deadline:</label>
+        <input type="date" id="deadline" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn btn-primary" id="btn-next">Next</button>
+      <button type="button" class="btn btn-info" id="btn-resume" style="display: none;">Resume</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="step2" class="form-step">
+    <div id="itemsContainer"></div>
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" id="btn-prev">Previous</button>
+      <button type="button" class="btn btn-info" id="btn-back" style="display: none;">Kembali</button>
+      <button type="button" class="btn btn-success" onclick="addItemFunction()">+ Add Item</button>
+      <button type="submit" class="btn btn-primary wide">Submit Order</button>
+    </div>
+  </div>
+</form>
+
+</div>
+
+<!-- Script akan dimuat dari index.html -->

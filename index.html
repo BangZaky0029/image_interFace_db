@@ -5,77 +5,137 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Order Dashboard</title>
   <link rel="stylesheet" href="./style/main.css" />
+  <link rel="stylesheet" href="./style/dashboard.css" />
 </head>
 <body>
   <div class="container">
-    <aside class="sidebar">
+    <button class="mobile-toggle" id="mobileToggle">☰</button>
+    <aside class="sidebar" id="sidebar">
       <div class="logo">
         <img src="./assets/mnk.jpg" alt="Logo" />
-        <h2>Dashboard</h2>
+        <div class="logo-title">Manukashop.id</div>
       </div>
+
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <span>⚡</span>
+      </button>
       <nav>
         <ul>
-          <li><a href="#dashboard">Dashboard</a></li>
-          <li><a href="#form">Form Input</a></li>
+          <li><a href="#dashboard" class="nav-link" data-tooltip="Dashboard Overview"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a></li>
+          <li><a href="#form" class="nav-link active" data-tooltip="Order Form"><span class="nav-icon">📝</span><span class="nav-text">Form Input</span></a></li>
         </ul>
       </nav>
       <div class="footer-menu">
-        <a href="#user">User</a>
-        <a href="#logout">Logout</a>
+        <a href="#user" data-tooltip="User Profile"><span class="nav-icon">👤</span><span class="nav-text">User</span></a>
+        <a href="#logout" data-tooltip="Sign Out"><span class="nav-icon">🚪</span><span class="nav-text">Logout</span></a>
       </div>
     </aside>
-
     <main class="main-content">
-      <section class="form-section" id="form">
-        <div class="success-message" id="successMessage"></div>
-        <div class="error-message" id="errorMessage"></div>
-        
-        <div class="form-card">
-          <h2>Form Input Order</h2>
-          <form id="orderForm">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="id_admin">ID Admin:</label>
-                <input type="number" id="id_admin" value="1" required />
-              </div>
-              <div class="form-group">
-                <label for="platform">Platform:</label>
-                <input type="text" id="platform" value="TikTok Shop" required />
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="nama_customer">Nama Customer:</label>
-                <input type="text" id="nama_customer" value="Zaky Aulia Qolbi" required />
-              </div>
-              <div class="form-group">
-                <label for="deadline">Deadline:</label>
-                <input type="date" id="deadline" required />
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="status_print">Status Print:</label>
-              <select id="status_print" required>
-                <option value="pending">Pending</option>
-                <option value="printed">Printed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
-            <div class="items-section">
-              <div class="items-header">
-                <h3>Items</h3>
-                <button type="button" class="add-item-btn">+ Add Item</button>
-              </div>
-              <div id="itemsContainer"></div>
-            </div>
-            <button type="submit" class="submit-btn">Submit Order</button>
-          </form>
-        </div>
-      </section>
+      <div id="mainContent"></div>
     </main>
-
   </div>
+
   <script src="./config/endpoint.js"></script>
   <script type="module" src="./js/POST/main.js"></script>
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const mobileToggle = document.getElementById('mobileToggle');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      sidebarToggle.style.transform = sidebar.classList.contains('collapsed') ? 'rotate(180deg)' : 'rotate(0deg)';
+    });
+
+    mobileToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !mobileToggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        navLinks.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        if (window.innerWidth <= 768) sidebar.classList.remove('open');
+      });
+    });
+
+    function loadPage(page) {
+      fetch(`./views/${page}.html`)
+        .then(res => res.text())
+        .then(html => {
+          document.getElementById('mainContent').innerHTML = html;
+          
+          // Inisialisasi berdasarkan halaman
+          if (page === 'form') {
+            setTimeout(() => {
+              // Reset form initialization flag
+              window.formInitialized = false;
+              
+              // Clean up any existing form state
+              if (window.initializeForm) {
+                console.log('Re-initializing form after tab switch');
+                window.initializeForm();
+              } else {
+                // Remove any existing form initialization script
+                const existingScript = document.querySelector('script[src="./js/formInit.js"]');
+                if (existingScript) {
+                  existingScript.remove();
+                }
+                
+                // Load form initialization script
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = './js/formInit.js';
+                script.onload = () => {
+                  console.log('Form initialization script loaded');
+                };
+                document.head.appendChild(script);
+              }
+            }, 150);
+          } else if (page === 'dashboard') {
+            setTimeout(() => {
+              // Clean up any existing dashboard
+              if (window.cleanupDashboard) {
+                window.cleanupDashboard();
+              }
+              
+              // Load dashboard script if not already loaded
+              if (!window.initDashboard) {
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = './js/GET/dashboard.js';
+                script.onload = () => {
+                  console.log('Dashboard script loaded');
+                  if (window.initDashboard) {
+                    window.initDashboard();
+                  }
+                };
+                document.head.appendChild(script);
+              } else {
+                console.log('Re-initializing dashboard after tab switch');
+                window.initDashboard();
+              }
+            }, 150);
+          }
+        });
+    }
+
+    window.onload = () => loadPage('form');
+    document.querySelectorAll('nav a').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const page = link.getAttribute('href').replace('#', '');
+        loadPage(page);
+      });
+    });
+  </script>
 </body>
 </html>

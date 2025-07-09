@@ -4,7 +4,7 @@ export function collectFormData() {
     platform: document.getElementById('platform').value,
     nama_customer: document.getElementById('nama_customer').value,
     deadline: document.getElementById('deadline').value,
-    status_print: document.getElementById('status_print').value,
+    status_print: 'pending', // Default status untuk order baru
     items: []
   };
 
