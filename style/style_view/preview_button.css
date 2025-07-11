@@ -1,0 +1,255 @@
+/* Preview Button and Modal Enhancements */
+.preview-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+  transition: background 0.2s, transform 0.2s;
+  margin-top: 10px;
+  margin-bottom: 8px;
+  margin-right: 0;
+  width: 100%;
+  max-width: 220px;
+  display: block;
+}
+.preview-btn:hover, .preview-btn:focus {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* Modal base: hidden by default */
+.preview-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,0.25);
+  align-items: center;
+  justify-content: center;
+  animation: fadeInModal 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.preview-modal.show {
+  display: flex;
+}
+@keyframes fadeInModal {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Modal card bigger, more padding/shadow, responsive */
+.preview-modal .modal-content {
+  background: #fff;
+  border-radius: 18px;
+  padding: 38px 40px;
+  width: 98%;
+  min-width: 300px;
+  max-width: 90vw;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: popUp 0.3s ease-out;
+}
+
+@keyframes popUp {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.preview-img-item img {
+  width: 100%;
+  max-width: 400px;
+  min-width: 220px;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 14px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+}
+
+.preview-img-item {
+  padding: 22px;
+  border-radius: 14px;
+  font-size: 1.12rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Toast notification style */
+.notif-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  background: #fff;
+  color: #222;
+  border-radius: 6px;
+  padding: 14px 28px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.13);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+  transform: translateY(-20px);
+}
+.notif-toast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.notif-toast.notif-success {
+  border-left: 5px solid #48bb78;
+}
+.notif-toast.notif-error {
+  border-left: 5px solid #e53e3e;
+}
+
+/* Button group layout for form actions */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-top: 24px;
+}
+.form-actions .btn, .form-actions .preview-btn {
+  margin: 0 8px 0 0;
+}
+.form-actions .btn:last-child, .form-actions .preview-btn:last-child {
+  margin-right: 0;
+}
+
+/* Approval Button inside Modal */
+.modal-footer .approval-btn {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(72, 187, 120, 0.12);
+  transition: background 0.2s, transform 0.2s;
+}
+.modal-footer .approval-btn:hover, .modal-footer .approval-btn:focus {
+  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* Responsive grid for previews */
+#previewGrid {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+/* Preview image item enhancements */
+.preview-modal .modal-content {
+  background: #fff;
+  border-radius: 14px;
+  padding: 28px 32px;
+  width: 95%;
+  max-width: 680px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: popUp 0.3s ease-out;
+}
+
+@keyframes popUp {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.preview-img-item img {
+  width: 100%;
+  max-width: 320px;
+  max-height: 280px;
+  object-fit: contain;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.preview-img-item {
+  padding: 18px;
+  border-radius: 12px;
+  font-size: 1.05rem;
+}
+
+/* Toast notification style */
+.notif-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  background: #fff;
+  color: #222;
+  border-radius: 6px;
+  padding: 14px 28px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.13);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+  transform: translateY(-20px);
+}
+.notif-toast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.notif-toast.notif-success {
+  border-left: 5px solid #48bb78;
+}
+.notif-toast.notif-error {
+  border-left: 5px solid #e53e3e;
+}
+
+/* Button group layout for form actions */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-top: 24px;
+}
+.form-actions .btn, .form-actions .preview-btn {
+  margin: 0 8px 0 0;
+}
+.form-actions .btn:last-child, .form-actions .preview-btn:last-child {
+  margin-right: 0;
+}
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  font-weight: bold;
+  color: #4a5568;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s, box-shadow 0.2s;
+  outline: none;
+  margin-left: 12px;
+}
+.modal-close-btn:hover, .modal-close-btn:focus {
+  color: #e53e3e;
+  background: rgba(229,62,62,0.08);
+  box-shadow: 0 2px 8px rgba(229,62,62,0.10);
+}
+.form-actions .btn, .form-actions .preview-btn {
+  margin: 0 8px 0 0;
+}
+.form-actions .btn:last-child, .form-actions .preview-btn:last-child {
+  margin-right: 0;
+}

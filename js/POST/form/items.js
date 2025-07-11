@@ -1,8 +1,7 @@
 let itemCounter = 0;
 const productTypeGroups = {
   '1 Sisi': ['1 SISI MAGNET', '1 SISI ZIPPER'],
-  '2 Sisi': ['2 SISI MAGNET', '2 SISI ZIPPER'],
-  'Lainnya': ['CUSTOM']
+  '2 Sisi': ['2 SISI MAGNET', '2 SISI ZIPPER']
 };
 
 export function initFirstItem() {
@@ -71,6 +70,9 @@ export function addItem() {
       <label for="product_note_${itemCounter}">Product Note:</label>
       <textarea id="product_note_${itemCounter}" rows="3"></textarea>
     </div>
+    <div class="form-group preview-btn-group">
+      <button type="button" class="preview-btn" data-item-id="${itemCounter}">Preview Design</button>
+    </div>
   `;
   container.appendChild(itemCard);
   
@@ -93,7 +95,6 @@ function setupItemEventListeners(itemId) {
       removeItem(itemId);
     });
   }
-  
   // Setup product type buttons dengan selector yang lebih spesifik
   const productBtns = document.querySelectorAll(`#item-${itemId} .product-type-btn`);
   productBtns.forEach(btn => {
@@ -103,7 +104,6 @@ function setupItemEventListeners(itemId) {
       selectProductType(itemId, type, e.target);
     });
   });
-  
   // Setup image brand buttons
   const imageBrandBtns = document.querySelectorAll(`#item-${itemId} .image-brand-btn`);
   imageBrandBtns.forEach(btn => {
@@ -114,6 +114,18 @@ function setupItemEventListeners(itemId) {
       showImageSearch(brand, itemId);
     });
   });
+  // Setup Preview Design button
+  const previewBtn = document.querySelector(`#item-${itemId} .preview-btn`);
+  if (previewBtn) {
+    previewBtn.addEventListener('click', () => {
+      // You may need to import or call the correct preview modal logic here
+      if (window.openPreviewModalForItem) {
+        window.openPreviewModalForItem(itemId);
+      } else {
+        alert('Preview modal logic not found!');
+      }
+    });
+  }
 }
 
 function selectProductType(itemId, type, targetBtn) {
@@ -127,25 +139,21 @@ function selectProductType(itemId, type, targetBtn) {
 // Fungsi untuk menampilkan pencarian gambar
 async function showImageSearch(brand, itemId) {
   try {
-    // Fetch images from API
-    const response = await fetch('http://localhost:5000/images');
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    // Simpan data gambar di localStorage jika belum ada
+    let cachedImages = localStorage.getItem('cachedImages');
+    let images;
     
-    const images = await response.json();
+    if (!cachedImages) {
+      // Fetch images from API hanya sekali
+      const response = await fetch('http://localhost:5000/images');
+      images = await response.json();
+      localStorage.setItem('cachedImages', JSON.stringify(images));
+    } else {
+      images = JSON.parse(cachedImages);
+    }
     
     // Filter images by brand (product_name)
     const brandImages = images.filter(img => img.product_name === brand);
-    
-    if (brandImages.length === 0) {
-      if (brand === 'MNK') {
-        showNotification('Data MNK belum tersedia dari backend', 'warning');
-      } else {
-        showNotification(`Tidak ada gambar ditemukan untuk ${brand}`, 'warning');
-      }
-      return;
-    }
     
     // Show search container
     const searchContainer = document.getElementById(`image_search_container_${itemId}`);
@@ -170,11 +178,6 @@ async function showImageSearch(brand, itemId) {
     
   } catch (error) {
     console.error('Error fetching images:', error);
-    if (brand === 'MNK') {
-      showNotification('Data MNK belum tersedia dari backend', 'warning');
-    } else {
-      showNotification('Gagal memuat gambar. Periksa koneksi ke server.', 'error');
-    }
   }
 }
 
@@ -311,13 +314,12 @@ function handleImageSearch(event) {
   // Display search results
   filteredImages.forEach(image => {
     const filename = image.image_name || extractFilenameFromPath(image.image_path);
-    // Use image_url if available, otherwise fallback to converting image_path
     const imageUrl = image.image_url || getImageUrl(image.image_path);
     const resultItem = document.createElement('div');
     resultItem.className = 'search-result-item';
     resultItem.innerHTML = `
       <span class="result-filename">${filename}</span>
-      <button class="select-result-btn" onclick="selectImageFromSearch(${image.id_image}, '${filename}', '${imageUrl}', ${itemId})">Pilih</button>
+      <button type="button" class="select-result-btn" onclick="selectImageFromSearch(${image.id_image}, '${filename}', '${imageUrl}', ${itemId})">Pilih</button>
     `;
     searchResults.appendChild(resultItem);
   });
@@ -343,25 +345,15 @@ window.selectImageFromSearch = function(imageId, imageName, imageUrl, itemId) {
   
   // Show enhanced preview with larger thumbnail
   if (imageThumbnail) {
-    // Use the provided imageUrl directly (already converted by API)
-    const finalImageUrl = imageUrl || getImageUrl(imageName); // Fallback to getImageUrl if no URL provided
+    const finalImageUrl = imageUrl || getImageUrl(imageName);
     
-    // Show loading state first
     imageThumbnail.innerHTML = `
       <div class="image-preview-container">
-        <div class="image-loading-spinner">
-          <div class="spinner"></div>
-          <span>Memuat gambar...</span>
-        </div>
-        <img src="${finalImageUrl}" alt="${imageName}" class="preview-image" style="display: none;" 
-             onload="this.style.display='block'; this.parentElement.querySelector('.image-loading-spinner').style.display='none';" 
-             onerror="this.style.display='none'; this.parentElement.querySelector('.image-loading-spinner').style.display='none'; this.parentElement.querySelector('.image-error').style.display='block';">
-        <div class="image-error" style="display: none;">Gambar tidak dapat dimuat</div>
+        <img src="${finalImageUrl}" alt="${imageName}" class="preview-image">
         <div class="image-info">
           <span class="image-id">ID: ${imageId}</span>
           <span class="image-name">${imageName}</span>
         </div>
-        <button type="button" class="preview-fullsize-btn" onclick="showFullSizePreview('${finalImageUrl}', '${imageName}', ${imageId})">Lihat Ukuran Penuh</button>
       </div>
     `;
   }
@@ -371,8 +363,6 @@ window.selectImageFromSearch = function(imageId, imageName, imageUrl, itemId) {
   if (searchContainer) {
     searchContainer.style.display = 'none';
   }
-  
-  showNotification(`Gambar ${imageName} berhasil dipilih`, 'success');
 };
 
 // Fungsi untuk memilih gambar (untuk backward compatibility)
@@ -398,12 +388,12 @@ window.selectImage = function(imageId, imageName, itemId, imagePathOrUrl = null)
     // Check if it's already a URL or needs conversion
     const imageUrl = imagePathOrUrl.startsWith('http') ? imagePathOrUrl : getImageUrl(imagePathOrUrl);
     
-    // Show loading state first
     imageThumbnail.innerHTML = `
       <div class="image-preview-container">
-        <div class="image-loading-spinner">
-          <div class="spinner"></div>
-          <span>Memuat gambar...</span>
+        <img src="${imageUrl}" alt="${imageName}" class="preview-image">
+        <div class="image-info">
+          <span class="image-id">ID: ${imageId}</span>
+          <span class="image-name">${imageName}</span>
         </div>
         <img src="${imageUrl}" alt="${imageName}" class="preview-image" style="display: none;" 
              onload="this.style.display='block'; this.parentElement.querySelector('.image-loading-spinner').style.display='none';" 
@@ -505,3 +495,22 @@ window.closeFullSizePreview = function() {
 
 // Export untuk digunakan di main.js
 export { addItem as addItemFunction, removeItem as removeItemFunction };
+
+// Event delegation for Preview Design buttons
+const itemsContainer = document.getElementById('itemsContainer');
+if (itemsContainer) {
+  itemsContainer.addEventListener('click', function(e) {
+    const btn = e.target.closest('.preview-btn');
+    if (btn && itemsContainer.contains(btn)) {
+      const itemCard = btn.closest('.item-card');
+      if (itemCard) {
+        const itemId = itemCard.id.replace('item-', '');
+        if (window.openPreviewModalForItem) {
+          window.openPreviewModalForItem(itemId);
+        } else {
+          alert('Preview modal logic not found!');
+        }
+      }
+    }
+  });
+}

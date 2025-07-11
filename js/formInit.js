@@ -18,6 +18,8 @@ function showMessage(message, isError = false) {
   }
 }
 
+
+
 // Function to setup navigation buttons with improved event handling
 function setupNavigationButtons() {
   console.log('Setting up navigation buttons...');
@@ -88,27 +90,25 @@ async function handleNextClick(e) {
   }
 
   // Perform step transition
-  await transitionToStep2();
+    await transitionToStep2();
+    setTimeout(() => {
+      if (window.initPreviewButton) {
+        window.initPreviewButton();
+      }
+    }, 500);
 }
 
 async function handlePrevClick(e) {
   e.preventDefault();
   console.log('Previous button clicked');
-  
   try {
     const multiStep = await import('./POST/form/multiStep.js');
     multiStep.transitionToStep1();
-    updateProgressIndicator(1);
-    
-    // Enable editing for step 1 inputs
-    enableStep1Inputs();
-    
     // Show Resume button when going back to step 1
     const btnResume = document.getElementById('btn-resume');
     if (btnResume) {
       btnResume.style.display = 'inline-block';
     }
-    
     console.log('Transitioned to step 1 with editing enabled');
   } catch (error) {
     console.error('Error in handlePrevClick:', error);
@@ -209,6 +209,7 @@ async function transitionToStep1() {
   const module = await loadMultiStepModule();
   if (module && module.transitionToStep1) {
     module.transitionToStep1();
+    
   }
   
   // Update progress indicator
@@ -436,10 +437,6 @@ function addItemManual() {
           </div>
         </div>
         <div class="product-type-group">
-          <div class="group-label">Lainnya</div>
-          <div class="buttons">
-            <button type="button" class="product-type-btn" onclick="selectProductTypeManual(${itemCount}, 'CUSTOM', this)">CUSTOM</button>
-          </div>
         </div>
       </div>
       <input type="hidden" id="type_product_${itemCount}" required />
@@ -557,3 +554,4 @@ if (document.readyState === 'loading') {
 
 // Export untuk manual initialization
 window.initializeForm = initializeForm;
+import { enableStep1Inputs } from './POST/form/multiStep.js';

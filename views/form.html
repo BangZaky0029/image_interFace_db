@@ -3,6 +3,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="http://127.0.0.1:5000/style/style_view/form.css">
+<link rel="stylesheet" href="http://127.0.0.1:5000/style/style_view/preview_button.css">
+<link rel="stylesheet" href="action_buttons.css">
 
 <div id="successMessage" class="message success-message" style="display: none;"></div>
 <div id="errorMessage" class="message error-message" style="display: none;"></div>
@@ -50,15 +52,20 @@
   <!-- STEP 2 -->
   <div id="step2" class="form-step">
     <div id="itemsContainer"></div>
-    <div class="form-actions">
-      <button type="button" class="btn btn-secondary" id="btn-prev">Previous</button>
-      <button type="button" class="btn btn-info" id="btn-back" style="display: none;">Kembali</button>
-      <button type="button" class="btn btn-success" onclick="addItemFunction()">+ Add Item</button>
-      <button type="submit" class="btn btn-primary wide">Submit Order</button>
+    <!-- Footer actions for step 2, placed OUTSIDE any item loop -->
+    <div class="form-footer flex justify-between items-center mt-8">
+      <div class="left-btn-group flex gap-3">
+        <button type="button" class="btn btn-secondary btn-prev" id="btn-prev">Previous</button>
+      </div>
+      <div class="right-btn-group flex gap-3">
+        <button type="button" class="btn btn-add btn-add-item" id="btn-add-item" onclick="handleAddItem()">+ Add Item</button>
+        <button type="button" class="btn btn-primary btn-submit" id="btn-submit" onclick="handleSubmit()">Submit</button>
+      </div>
     </div>
   </div>
 </form>
 
 </div>
 
+<script src="http://127.0.0.1:5000/js/components/previewButton.js"></script>
 <!-- Script akan dimuat dari index.html -->
