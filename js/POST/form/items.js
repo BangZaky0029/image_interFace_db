@@ -11,6 +11,15 @@ export function initFirstItem() {
   document.getElementById('deadline').value = tomorrow.toISOString().split('T')[0];
 }
 
+  function updateContainerColor(inputEl, containerId) {
+    const color = inputEl.value;
+    const container = document.getElementById(containerId);
+    if (container) {
+      container.style.backgroundColor = color + '20'; // kasih transparansi
+    }
+  }
+
+
 export function addItem() {
   itemCounter++;
   const container = document.getElementById('itemsContainer');
@@ -24,28 +33,48 @@ export function addItem() {
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label for="nama_${itemCounter}">Nama:</label>
+        <label for="nama_${itemCounter}">Nama :</label>
         <input type="text" id="nama_${itemCounter}" required />
       </div>
-      <div class="form-group">
-        <label>ID Image:</label>
-        <div class="image-selection">
-          <button type="button" class="image-brand-btn" data-item-id="${itemCounter}" data-brand="Marsoto">Marsoto</button>
-          <button type="button" class="image-brand-btn" data-item-id="${itemCounter}" data-brand="MNK">MNK</button>
-        </div>
-        <input type="hidden" id="id_image_${itemCounter}" required />
-        <div class="image-search-container" id="image_search_container_${itemCounter}" style="display: none;">
-          <input type="text" id="image_search_input_${itemCounter}" placeholder="Cari berdasarkan nama file..." class="image-search-input">
-          <div class="search-results" id="search_results_${itemCounter}"></div>
-        </div>
-        <div class="selected-image-info" id="selected_image_info_${itemCounter}" style="display: none;">
-          <span class="selected-image-label"></span>
-          <div class="selected-image-thumbnail" id="selected_image_thumbnail_${itemCounter}"></div>
-        </div>
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label for="font_color_${itemCounter}" 
+        style="
+        display: inline-block; 
+        width: 100px; 
+        font-weight: 600; 
+        color: #555;">
+          Font Color :
+        </label>
+        <input 
+          type="color" 
+          id="font_color_${itemCounter}" 
+          value="#000000"
+          class="font-color-picker"
+          data-container-id="color-target-${itemCounter}"
+          style="border: 2px solid #ccc; 
+          width: 200px; 
+          height: 45px; 
+          border-radius: 8px; 
+          cursor: pointer;"
+        />
+      </div>
+      <label>ID Image :</label>
+      <div class="image-selection">
+        <button type="button" class="image-brand-btn" data-item-id="${itemCounter}" data-brand="Marsoto">Marsoto</button>
+        <button type="button" class="image-brand-btn" data-item-id="${itemCounter}" data-brand="MNK">MNK</button>
+      </div>
+      <input type="hidden" id="id_image_${itemCounter}" required />
+      <div class="image-search-container" id="image_search_container_${itemCounter}" style="display: none;">
+        <input type="text" id="image_search_input_${itemCounter}" placeholder="Cari berdasarkan nama file..." class="image-search-input">
+        <div class="search-results" id="search_results_${itemCounter}"></div>
+      </div>
+      <div class="selected-image-info" id="selected_image_info_${itemCounter}" style="display: none;">
+        <span class="selected-image-label"></span>
+        <div class="selected-image-thumbnail" id="selected_image_thumbnail_${itemCounter}"></div>
       </div>
     </div>
     <div class="form-group">
-      <label>Type Product:</label>
+      <label>Type Product :</label>
       <div class="product-types">
         ${Object.entries(productTypeGroups).map(([groupName, types]) => `
           <div class="product-type-group">
@@ -67,7 +96,7 @@ export function addItem() {
       </div>
     </div>
     <div class="form-group">
-      <label for="product_note_${itemCounter}">Product Note:</label>
+      <label for="product_note_${itemCounter}">Product Note :</label>
       <textarea id="product_note_${itemCounter}" rows="3"></textarea>
     </div>
     <div class="form-group preview-btn-group">
@@ -114,18 +143,30 @@ function setupItemEventListeners(itemId) {
       showImageSearch(brand, itemId);
     });
   });
+  // Setup font color event listener
+  const colorInput = document.getElementById(`font_color_${itemId}`);
+  if (colorInput) {
+    colorInput.addEventListener('input', () => {
+      updateContainerColor(colorInput, colorInput.dataset.containerId);
+    });
+    // Apply initial color
+    updateContainerColor(colorInput, colorInput.dataset.containerId);
+  }
+
   // Setup Preview Design button
   const previewBtn = document.querySelector(`#item-${itemId} .preview-btn`);
   if (previewBtn) {
     previewBtn.addEventListener('click', () => {
       // You may need to import or call the correct preview modal logic here
       if (window.openPreviewModalForItem) {
-        window.openPreviewModalForItem(itemId);
+        window.openPreviewModalForItem(document.getElementById(`item-${itemId}`));
       } else {
         alert('Preview modal logic not found!');
       }
     });
   }
+
+  
 }
 
 function selectProductType(itemId, type, targetBtn) {
@@ -506,7 +547,7 @@ if (itemsContainer) {
       if (itemCard) {
         const itemId = itemCard.id.replace('item-', '');
         if (window.openPreviewModalForItem) {
-          window.openPreviewModalForItem(itemId);
+          window.openPreviewModalForItem(itemCard);
         } else {
           alert('Preview modal logic not found!');
         }

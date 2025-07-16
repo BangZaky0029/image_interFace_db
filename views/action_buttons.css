@@ -39,3 +39,6 @@
 .btn-submit:hover {
   background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
 }
+#font_color {
+  padding: 20px;
+}

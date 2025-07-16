@@ -15,7 +15,8 @@ export function collectFormData() {
       id_image: parseInt(document.getElementById(`id_image_${id}`).value),
       type_product: document.getElementById(`type_product_${id}`).value,
       qty: parseInt(document.getElementById(`qty_${id}`).value),
-      product_note: document.getElementById(`product_note_${id}`).value || ''
+      product_note: document.getElementById(`product_note_${id}`).value || '',
+      font_color: document.getElementById(`font_color_${id}`).value
     });
   });
 

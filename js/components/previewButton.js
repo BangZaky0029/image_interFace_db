@@ -70,13 +70,13 @@ function createPreviewModal() {
       <div class="modal-content">
         <div class="modal-header flex justify-between items-center">
           <span class="modal-title">Preview Design</span>
-          <button class="modal-close-btn" id="closePreviewModal" aria-label="Close Preview">&times;</button>
+          <button class="modal-close-btn" id="closePreviewModal"</button>
         </div>
         <div id="previewGrid" class="preview-grid">
           <div class="loading-spinner">Loading preview...</div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" id="btn-close-modal">Close</button>        </div>
+          <button type="button" class="btn btn-secondary" id="btn-close-modal">Close</button>       
       </div>
     `;
     document.body.appendChild(modal);
@@ -131,6 +131,7 @@ async function openPreviewModalForItem(itemCard) {
   const qty = parseInt(itemCard.querySelector('[id^="qty_"]').value) || 1;
   const type_product = itemCard.querySelector('[id^="type_product_"]').value;
   const product_note = itemCard.querySelector('[id^="product_note_"]').value;
+  const font_color = itemCard.querySelector('[id^="font_color_"]').value;
   
   // Validate required fields
   if (!id_image || !nama || !type_product) {
@@ -149,7 +150,8 @@ async function openPreviewModalForItem(itemCard) {
         nama, 
         qty, 
         type_product, 
-        product_note 
+        product_note,
+        font_color 
       })
     });
     
@@ -158,10 +160,10 @@ async function openPreviewModalForItem(itemCard) {
     if (resp.ok && data.preview_url) {
       // Success - show preview
       grid.innerHTML = `
-        <div class="preview-img-item">
+        <div class="preview-img-item" style="position: relative; overflow: hidden;">
           <img src="${data.preview_url}" 
-               alt="Preview Design" 
-               style="max-width: 400px; width: 80vw; height: auto; display: block; margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" 
+               alt="Preview Design" class="zoomable-img"
+               style="max-width: 400px; width: 80vw; height: auto; display: block; margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.3s ease; cursor: zoom-in;" 
                onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiNmMGYwZjAiLz48dGV4dCB4PSIyMDAiIHk9IjE1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE2IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+'; this.style.border='2px dashed #ccc';" />
           <div class="preview-info" style="margin-top: 15px; text-align: center;">
             <div style="font-weight: 600; font-size: 16px; color: #333;">${nama}</div>
@@ -173,6 +175,100 @@ async function openPreviewModalForItem(itemCard) {
           </div>
         </div>
       `;
+      
+      // Setup zoom functionality
+      const img = grid.querySelector('.zoomable-img');
+      if (img) {
+        let zoomLevel = 1;
+        const zoomSteps = [1, 1.2, 1.4, 1.6, 1.8, 2.0];
+        let currentStep = 0;
+        let translateX = 0;
+        let translateY = 0;
+        let isDragMode = false;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+
+        const updateTransform = () => {
+          img.style.transform = `scale(${zoomLevel}) translate(${translateX}px, ${translateY}px)`;
+        };
+
+        // Click to zoom
+        img.addEventListener('click', (e) => {
+          if (isDragMode) return;
+          currentStep = (currentStep + 1) % zoomSteps.length;
+          zoomLevel = zoomSteps[currentStep];
+          if (zoomLevel === 1) {
+            translateX = 0;
+            translateY = 0;
+          }
+          updateTransform();
+          img.style.cursor = zoomLevel > 1 ? 'zoom-out' : 'zoom-in';
+        });
+
+        // Key handlers
+        const handleKeyDown = (e) => {
+          if (e.key === ' ' && zoomLevel > 1) {
+            e.preventDefault();
+            isDragMode = true;
+            img.style.cursor = 'grab';
+          }
+        };
+
+        const handleKeyUp = (e) => {
+          if (e.key === ' ') {
+            isDragMode = false;
+            isDragging = false;
+            img.style.cursor = zoomLevel > 1 ? 'zoom-out' : 'zoom-in';
+          }
+        };
+
+        // Drag handlers
+        const handleMouseDown = (e) => {
+          if (isDragMode) {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            img.style.cursor = 'grabbing';
+          }
+        };
+
+        const handleMouseMove = (e) => {
+          if (!isDragging) return;
+          e.preventDefault();
+          const dx = e.clientX - startX;
+          const dy = e.clientY - startY;
+          translateX += dx / zoomLevel;
+          translateY += dy / zoomLevel;
+          startX = e.clientX;
+          startY = e.clientY;
+          updateTransform();
+        };
+
+        const handleMouseUp = (e) => {
+          isDragging = false;
+          if (isDragMode) {
+            img.style.cursor = 'grab';
+          } else {
+            img.style.cursor = zoomLevel > 1 ? 'zoom-out' : 'zoom-in';
+          }
+        };
+
+        // Add listeners
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keyup', handleKeyUp);
+        img.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+
+        // Store for removal
+        currentPreviewListeners = {
+          keydown: handleKeyDown,
+          keyup: handleKeyUp,
+          mousemove: handleMouseMove,
+          mouseup: handleMouseUp
+        };
+      }
       
       showNotification('success', 'Preview berhasil dibuat');
       
@@ -203,6 +299,14 @@ function closePreviewModal() {
     modal.classList.remove('show');
     document.body.style.overflow = '';
     window.removeEventListener('keydown', modal._escListener);
+    // Remove preview listeners
+    if (currentPreviewListeners.keydown) {
+      document.removeEventListener('keydown', currentPreviewListeners.keydown);
+      document.removeEventListener('keyup', currentPreviewListeners.keyup);
+      document.removeEventListener('mousemove', currentPreviewListeners.mousemove);
+      document.removeEventListener('mouseup', currentPreviewListeners.mouseup);
+      currentPreviewListeners = {};
+    }
   }
 }
 
@@ -321,3 +425,5 @@ window.deletePreview = deletePreview;
 // Clean up old global preview button
 const globalPreviewBtn = document.getElementById('btn-preview');
 if (globalPreviewBtn) globalPreviewBtn.style.display = 'none';
+
+let currentPreviewListeners = {};
