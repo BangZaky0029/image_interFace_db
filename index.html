@@ -26,7 +26,21 @@
       <nav>
         <ul>
           <li><a href="#dashboard" class="nav-link" data-tooltip="Dashboard Overview"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a></li>
-          <li><a href="#form" class="nav-link active" data-tooltip="Order Form"><span class="nav-icon">📝</span><span class="nav-text">Form Input</span></a></li>
+          <li class="dropdown">
+            <a class="nav-title dropdown-toggle"><span class="nav-icon">📂</span><span class="nav-text">Form</span></a>
+            <ul class="sub-menu">
+              <li><a href="#form" class="nav-link sub-link" data-tooltip="Form Input"><span class="nav-icon">📝</span><span class="nav-text">Form Input</span></a></li>
+              <li><a href="#form_admin" class="nav-link sub-link" data-tooltip="Form Admin"><span class="nav-icon">🛡️</span><span class="nav-text">Form Admin</span></a></li>
+              <li><a href="#form_product" class="nav-link sub-link" data-tooltip="Form Product"><span class="nav-icon">🛍️</span><span class="nav-text">Form Product</span></a></li>
+            </ul>
+          </li>
+          <li class="dropdown">
+            <a class="nav-title dropdown-toggle"><span class="nav-icon">📊</span><span class="nav-text">Table</span></a>
+            <ul class="sub-menu">
+              <li><a href="#table_orders" class="nav-link sub-link" data-tooltip="Table Orders"><span class="nav-icon">📋</span><span class="nav-text">Table Orders</span></a></li>
+              <li><a href="#table_print" class="nav-link sub-link" data-tooltip="Table Print"><span class="nav-icon">🖨️</span><span class="nav-text">Table Print</span></a></li>
+            </ul>
+          </li>
         </ul>
       </nav>
       <div class="footer-menu">
@@ -69,6 +83,16 @@
         navLinks.forEach(l => l.classList.remove('active'));
         link.classList.add('active');
         if (window.innerWidth <= 768) sidebar.classList.remove('open');
+      });
+    });
+
+    // Dropdown toggle
+    const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+    dropdownToggles.forEach(toggle => {
+      toggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        const parent = toggle.closest('.dropdown');
+        parent.classList.toggle('open');
       });
     });
 
@@ -133,7 +157,7 @@
         });
     }
 
-    window.onload = () => loadPage('form');
+    window.onload = () => loadPage('dashboard');
     document.querySelectorAll('nav a').forEach(link => {
       link.addEventListener('click', e => {
         e.preventDefault();

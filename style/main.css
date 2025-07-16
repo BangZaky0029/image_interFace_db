@@ -252,3 +252,18 @@ nav a.active {
   transition: all 0.3s ease;
 }
 
+/* Dropdown styles */
+.dropdown-toggle {
+  cursor: pointer;
+}
+
+.sub-menu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
+}
+
+.dropdown.open .sub-menu {
+  max-height: 500px; /* Adjust based on content */
+}
+
