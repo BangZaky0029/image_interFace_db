@@ -9,7 +9,8 @@
   gap: 12px;
 }
 .btn-secondary, .btn-add, .btn-submit {
-  padding: 12px 28px;
+  margin-right: 5px;
+  padding: 20px 28px;
   font-size: 0.95rem;
   font-weight: 600;
   border-radius: 8px;
@@ -32,7 +33,8 @@
 }
 .btn-submit {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  color: rgb(255, 255, 255);
+  flex-grow: 1;
 }
 .btn-submit:hover {
   background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
