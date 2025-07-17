@@ -1,1 +1,39 @@
-<div>Content for table_print</div>
+<div>
+    <h2>Table Print</h2>
+    <input type="text" id="searchInput" placeholder="Search in all fields...">
+    <table id="printTable" border="1">
+        <thead>
+            <tr>
+                <th>ID Print</th>
+                <th>ID Order Detail</th>
+                <th>Print Image Path</th>
+                <th>Status</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <script>
+        function loadPrints() {
+            fetch('/print')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.querySelector('#printTable tbody');
+                    tableBody.innerHTML = '';
+                    data.forEach(printItem => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${printItem.id_print}</td>
+                            <td>${printItem.id_order_detail}</td>
+                            <td>${printItem.print_image_path}</td>
+                            <td>${printItem.status}</td>
+                            <td>${printItem.timestamp}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error fetching prints:', error));
+        }
+        window.onload = loadPrints;
+    </script>
+</div>

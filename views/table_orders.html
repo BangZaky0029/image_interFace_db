@@ -1,1 +1,43 @@
-<div>Content for table_orders</div>
+<div>
+    <h2>Table Orders</h2>
+    <input type="text" id="searchInput" placeholder="Search in all fields...">
+    <table id="ordersTable" border="1">
+        <thead>
+            <tr>
+                <th>ID Order</th>
+                <th>ID Admin</th>
+                <th>Platform</th>
+                <th>Nama Customer</th>
+                <th>Deadline</th>
+                <th>Status Print</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <script>
+        function loadOrders() {
+            fetch('/orders')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.querySelector('#ordersTable tbody');
+                    tableBody.innerHTML = '';
+                    data.forEach(order => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${order.id_order}</td>
+                            <td>${order.id_admin}</td>
+                            <td>${order.platform}</td>
+                            <td>${order.nama_customer}</td>
+                            <td>${order.deadline}</td>
+                            <td>${order.status_print}</td>
+                            <td>${order.timestamp}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error fetching orders:', error));
+        }
+        window.onload = loadOrders;
+    </script>
+</div>
