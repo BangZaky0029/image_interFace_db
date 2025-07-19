@@ -11,7 +11,7 @@ export function validateStep1() {
   const platform = document.getElementById('platform')?.value?.trim();
 
   if (!idAdmin) {
-    showMessage('ID Admin harus diisi', true);
+    showMessage('Admin harus dipilih', true);
     return false;
   }
   if (!namaCustomer) {

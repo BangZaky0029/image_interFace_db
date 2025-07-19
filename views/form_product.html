@@ -1,11 +1,16 @@
+<!-- Product Form content -->
+<link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/product_mobile.css">
 <div>
     <h2>Form Product - Create Order</h2>
     <form id="orderForm">
         <label for="id_order">ID Order:</label>
         <input type="text" id="id_order" name="id_order" required><br>
         
-        <label for="id_admin">ID Admin:</label>
-        <input type="number" id="id_admin" name="id_admin" required><br>
+        <label for="id_admin">Admin:</label>
+        <select id="id_admin" name="id_admin" required>
+            <option value="">-- Pilih Admin --</option>
+            <!-- Opsi admin akan diisi secara dinamis oleh populateAdminDropdown -->
+        </select><br>
         
         <label for="platform">Platform:</label>
         <input type="text" id="platform" name="platform" required><br>

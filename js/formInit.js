@@ -236,6 +236,16 @@ function initializeForm() {
   
   console.log('Form found, proceeding with initialization...');
   
+  // Inisialisasi dropdown admin
+  import('../config/listItem.js')
+    .then(listItemModule => {
+      // Populate admin dropdown
+      listItemModule.populateAdminDropdown('id_admin');
+    })
+    .catch(error => {
+      console.error('Error loading listItem.js module:', error);
+    });
+  
   // Import dan inisialisasi semua modul
   Promise.all([
     import('./POST/form/items.js'),
@@ -246,7 +256,7 @@ function initializeForm() {
     
     // Inisialisasi form
     itemsModule.initFirstItem();
-    eventModule.setupForm('http://127.0.0.1:5000');
+    eventModule.setupForm('http://100.124.58.32:5000');
     
     // Set global function untuk addItem
     window.addItemFunction = itemsModule.addItemFunction;

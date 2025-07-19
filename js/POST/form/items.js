@@ -186,7 +186,7 @@ async function showImageSearch(brand, itemId) {
     
     if (!cachedImages) {
       // Fetch images from API hanya sekali
-      const response = await fetch('http://localhost:5000/images');
+      const response = await fetch('http://100.124.58.32:5000/images');
       images = await response.json();
       localStorage.setItem('cachedImages', JSON.stringify(images));
     } else {
@@ -260,7 +260,7 @@ function getImageUrl(imagePath) {
     const parts = normalizedPath.split('database_images/');
     if (parts.length > 1) {
       const relativePath = parts[1];
-      const finalUrl = `http://localhost:5000/static/images/${relativePath}`;
+      const finalUrl = `http://100.124.58.32:5000/static/images/${relativePath}`;
       console.log('Generated URL from database_images path:', finalUrl);
       return finalUrl;
     }
@@ -276,7 +276,7 @@ function getImageUrl(imagePath) {
       const brand = brandMatch[1];
       const filename = brandMatch[2];
       const relativePath = `${brand}/${filename}`;
-      const finalUrl = `http://localhost:5000/static/images/${relativePath}`;
+      const finalUrl = `http://100.124.58.32:5000/static/images/${relativePath}`;
       console.log('Generated URL from malformed path:', finalUrl);
       return finalUrl;
     }
@@ -296,7 +296,7 @@ function getImageUrl(imagePath) {
     
     if (startIndex >= 0) {
       const relativePath = pathParts.slice(startIndex).join('/');
-      const finalUrl = `http://localhost:5000/static/images/${relativePath}`;
+      const finalUrl = `http://100.124.58.32:5000/static/images/${relativePath}`;
       console.log('Generated URL from brand folder path:', finalUrl);
       return finalUrl;
     }
@@ -304,7 +304,7 @@ function getImageUrl(imagePath) {
   
   // If path already looks like a relative path (brand/filename)
   if (normalizedPath.match(/^(Marsoto|MNK)\//)) {
-    const finalUrl = `http://localhost:5000/static/images/${normalizedPath}`;
+    const finalUrl = `http://100.124.58.32:5000/static/images/${normalizedPath}`;
     console.log('Generated URL from relative path:', finalUrl);
     return finalUrl;
   }
@@ -315,12 +315,12 @@ function getImageUrl(imagePath) {
   // Try to determine brand from filename pattern
   if (filename.match(/^(DUBAI|TURKI|INDIA)/i)) {
     // These patterns typically belong to Marsoto
-    const finalUrl = `http://localhost:5000/static/images/Marsoto/${filename}`;
+    const finalUrl = `http://100.124.58.32:5000/static/images/Marsoto/${filename}`;
     console.log('Generated URL assuming Marsoto brand:', finalUrl);
     return finalUrl;
   } else {
     // Default to MNK for other patterns
-    const finalUrl = `http://localhost:5000/static/images/MNK/${filename}`;
+    const finalUrl = `http://100.124.58.32:5000/static/images/MNK/${filename}`;
     console.log('Generated URL assuming MNK brand:', finalUrl);
     return finalUrl;
   }
@@ -432,18 +432,10 @@ window.selectImage = function(imageId, imageName, itemId, imagePathOrUrl = null)
     imageThumbnail.innerHTML = `
       <div class="image-preview-container">
         <img src="${imageUrl}" alt="${imageName}" class="preview-image">
-        <div class="image-info">
-          <span class="image-id">ID: ${imageId}</span>
-          <span class="image-name">${imageName}</span>
-        </div>
         <img src="${imageUrl}" alt="${imageName}" class="preview-image" style="display: none;" 
              onload="this.style.display='block'; this.parentElement.querySelector('.image-loading-spinner').style.display='none';" 
              onerror="this.style.display='none'; this.parentElement.querySelector('.image-loading-spinner').style.display='none'; this.parentElement.querySelector('.image-error').style.display='block';">
         <div class="image-error" style="display: none;">Gambar tidak dapat dimuat</div>
-        <div class="image-info">
-          <span class="image-id">ID: ${imageId}</span>
-          <span class="image-name">${imageName}</span>
-        </div>
         <button type="button" class="preview-fullsize-btn" onclick="showFullSizePreview('${imageUrl}', '${imageName}', ${imageId})">Lihat Ukuran Penuh</button>
       </div>
     `;

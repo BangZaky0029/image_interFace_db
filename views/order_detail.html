@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Detail</title>
+    
+    <!-- Link to Order Detail CSS -->
+    <link rel="stylesheet" href="../style/style_view/order_detail.css">
+    <!-- Link to Order Detail Mobile CSS -->
+    <link rel="stylesheet" href="../style/style_view/order_detail_mobile.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Order Detail Management</h1>
+        
+        <div class="order-actions">
+            <button onclick="viewOrderDetail('ORDER-001')" class="btn btn-primary">
+                View Order Detail
+            </button>
+            
+            <button onclick="viewPrintDetail('PRINT-001')" class="btn btn-secondary">
+                View Print Detail
+            </button>
+        </div>
+        
+        <div class="order-list">
+            <h2>Order List</h2>
+            <table class="order-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="orderTableBody">
+                    <!-- Order data will be populated here -->
+                    <tr>
+                        <td>ORDER-001</td>
+                        <td>John Doe</td>
+                        <td>Processing</td>
+                        <td>
+                            <button onclick="viewOrderDetail('ORDER-001')" class="btn btn-sm">
+                                View Detail
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Import Order Detail JavaScript -->
+    <script type="module" src="../js/GET/order_detail.js"></script>
+</body>
+</html>

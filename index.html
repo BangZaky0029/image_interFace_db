@@ -9,7 +9,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="http://127.0.0.1:5000/style/main.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="http://100.124.58.32:5000/style/main.css" />
+  <link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/order_detail.css" />
+  <link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/order_detail_mobile.css" />
+  <link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/mobile.css" />
+  <link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/dashboard_mobile.css" />
+  <link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/input_mobile.css" />
+  <link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/table_mobile.css" />
 </head>
 <body>
   <div class="container">
@@ -53,9 +60,11 @@
     </main>
   </div>
 
-  <script src="http://127.0.0.1:5000/config/endpoint.js"></script>
+  <script src="http://100.124.58.32:5000/config/endpoint.js"></script>
   <script src="./js/components/previewButton.js"></script>
-  <script type="module" src="http://127.0.0.1:5000/js/POST/main.js"></script>
+  <script src="http://100.124.58.32:5000/js/components/mobileNav.js"></script>
+  <script src="http://100.124.58.32:5000/js/components/responsiveTables.js"></script>
+  <script type="module" src="http://100.124.58.32:5000/js/POST/main.js"></script>
   <script>
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
@@ -96,11 +105,17 @@
       });
     });
 
-    function loadPage(page) {
+    // Make loadPage function globally accessible
+    window.loadPage = function(page) {
       fetch(`./views/${page}.html`)
         .then(res => res.text())
         .then(html => {
           document.getElementById('mainContent').innerHTML = html;
+          
+          // Update mobile navigation active state if function exists
+          if (window.updateMobileNavActiveState) {
+            window.updateMobileNavActiveState(page);
+          }
           
           // Inisialisasi berdasarkan halaman
           if (page === 'form') {
@@ -114,7 +129,7 @@
                 window.initializeForm();
               } else {
                 // Remove any existing form initialization script
-                const existingScript = document.querySelector('script[src="http://127.0.0.1:5000/js/formInit.js"]');
+                const existingScript = document.querySelector('script[src="http://100.124.58.32:5000/js/formInit.js"]');
                 if (existingScript) {
                   existingScript.remove();
                 }
@@ -122,7 +137,7 @@
                 // Load form initialization script
                 const script = document.createElement('script');
                 script.type = 'module';
-                script.src = 'http://127.0.0.1:5000/js/formInit.js';
+                script.src = 'http://100.124.58.32:5000/js/formInit.js';
                 script.onload = () => {
                   console.log('Form initialization script loaded');
                 };
@@ -140,7 +155,7 @@
               if (!window.initDashboard) {
                 const script = document.createElement('script');
                 script.type = 'module';
-                script.src = 'http://127.0.0.1:5000/js/GET/dashboard.js';
+                script.src = 'http://100.124.58.32:5000/js/GET/dashboard.js';
                 script.onload = () => {
                   console.log('Dashboard script loaded');
                   if (window.initDashboard) {
@@ -153,11 +168,103 @@
                 window.initDashboard();
               }
             }, 150);
+          } else if (page === 'table_orders') {
+            setTimeout(() => {
+              // Load order_detail script if not already loaded
+              if (!window.viewOrderDetail) {
+                const detailScript = document.createElement('script');
+                detailScript.type = 'module';
+                detailScript.src = 'http://100.124.58.32:5000/js/GET/order_detail.js';
+                detailScript.onload = () => {
+                  console.log('Order detail script loaded');
+                  
+                  // Load orders table script after order_detail is loaded
+                  const script = document.createElement('script');
+                  script.type = 'module';
+                  script.src = 'http://100.124.58.32:5000/js/GET/orders.js';
+                  script.onload = () => {
+                    console.log('Orders table script loaded');
+                    if (window.initOrdersTable) {
+                      window.initOrdersTable();
+                    }
+                  };
+                  document.head.appendChild(script);
+                };
+                document.head.appendChild(detailScript);
+              } else {
+                // If order_detail is already loaded, just load orders
+                if (!window.initOrdersTable) {
+                  const script = document.createElement('script');
+                  script.type = 'module';
+                  script.src = 'http://100.124.58.32:5000/js/GET/orders.js';
+                  script.onload = () => {
+                    console.log('Orders table script loaded');
+                    if (window.initOrdersTable) {
+                      window.initOrdersTable();
+                    }
+                  };
+                  document.head.appendChild(script);
+                } else {
+                  console.log('Re-initializing orders table after tab switch');
+                  window.initOrdersTable();
+                }
+              }
+            }, 150);
+          } else if (page === 'table_print') {
+            setTimeout(() => {
+              // Load order_detail script if not already loaded
+              if (!window.viewPrintDetail) {
+                const detailScript = document.createElement('script');
+                detailScript.type = 'module';
+                detailScript.src = 'http://100.124.58.32:5000/js/GET/order_detail.js';
+                detailScript.onload = () => {
+                  console.log('Order detail script loaded');
+                  
+                  // Load print table script after order_detail is loaded
+                  const script = document.createElement('script');
+                  script.type = 'module';
+                  script.src = 'http://100.124.58.32:5000/js/GET/print.js';
+                  script.onload = () => {
+                    console.log('Print table script loaded');
+                    if (window.initPrintTable) {
+                      window.initPrintTable();
+                    }
+                  };
+                  document.head.appendChild(script);
+                };
+                document.head.appendChild(detailScript);
+              } else {
+                // If order_detail is already loaded, just load print
+                if (!window.initPrintTable) {
+                  const script = document.createElement('script');
+                  script.type = 'module';
+                  script.src = 'http://100.124.58.32:5000/js/GET/print.js';
+                  script.onload = () => {
+                    console.log('Print table script loaded');
+                    if (window.initPrintTable) {
+                      window.initPrintTable();
+                    }
+                  };
+                  document.head.appendChild(script);
+                } else {
+                  console.log('Re-initializing print table after tab switch');
+                  window.initPrintTable();
+                }
+              }
+            }, 150);
           }
         });
     }
 
-    window.onload = () => loadPage('dashboard');
+    window.onload = () => {
+      // Load dashboard as default page
+      window.loadPage('dashboard');
+      
+      // Initialize mobile navigation if needed
+      if (window.innerWidth <= 768 && window.initMobileNav) {
+        window.initMobileNav();
+      }
+    };
     document.querySelectorAll('nav a').forEach(link => {
       link.addEventListener('click', e => {
         e.preventDefault();

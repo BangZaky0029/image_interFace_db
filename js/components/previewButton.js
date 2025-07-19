@@ -14,14 +14,14 @@ function showNotification(type, message) {
 }
 
 // Get server IP for preview URLs
-let serverIP = 'localhost';
+let serverIP = '100.124.58.32';
 async function getServerIP() {
   try {
     const resp = await fetch('/api/server-info');
     const data = await resp.json();
-    serverIP = data.ip || 'localhost';
+    serverIP = data.ip || '100.124.58.32';
   } catch (err) {
-    console.log('Using localhost as fallback');
+    console.log('Using 100.124.58.32 as fallback');
   }
 }
 
@@ -60,32 +60,32 @@ function initPreviewButton() {
   createPreviewModal();
 }
 
-// Create Preview Modal
-function createPreviewModal() {
-  let modal = document.querySelector('.preview-modal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.className = 'preview-modal';
-    modal.innerHTML = `
-      <div class="modal-content">
-        <div class="modal-header flex justify-between items-center">
-          <span class="modal-title">Preview Design</span>
-          <button class="modal-close-btn" id="closePreviewModal"</button>
-        </div>
-        <div id="previewGrid" class="preview-grid">
-          <div class="loading-spinner">Loading preview...</div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" id="btn-close-modal">Close</button>       
-      </div>
-    `;
-    document.body.appendChild(modal);
+// // Create Preview Modal
+// function createPreviewModal() {
+//   let modal = document.querySelector('.preview-modal');
+//   if (!modal) {
+//     modal = document.createElement('div');
+//     modal.className = 'preview-modal';
+//     modal.innerHTML = `
+//       <div class="modal-content">
+//         <div class="modal-header flex justify-between items-center">
+//           <span class="modal-title">Preview Design</span>
+//           <button class="modal-close-btn" id="closePreviewModal"</button>
+//         </div>
+//         <div id="previewGrid" class="preview-grid">
+//           <div class="loading-spinner"></div>
+//         </div>
+//         <div class="modal-footer">
+//           <button type="button" class="btn btn-secondary" id="btn-close-modal">Close</button>       
+//       </div>
+//     `;
+//     document.body.appendChild(modal);
     
-    // Modal event handlers
-    setupModalEventHandlers(modal);
-  }
-  return modal;
-}
+//     // Modal event handlers
+//     setupModalEventHandlers(modal);
+//   }
+//   return modal;
+// }
 
 // Setup modal event handlers
 function setupModalEventHandlers(modal) {
@@ -110,7 +110,12 @@ function setupModalEventHandlers(modal) {
 
 // Open Preview Modal for a single item
 async function openPreviewModalForItem(itemCard) {
-  const modal = document.querySelector('.preview-modal');
+  // Create a new modal each time to avoid stale state
+  // First, close any existing modals
+  closePreviewModal();
+  
+  // Create a fresh modal
+  const modal = createPreviewModal();
   const grid = modal.querySelector('#previewGrid');
   
   // Reset grid content
@@ -123,7 +128,11 @@ async function openPreviewModalForItem(itemCard) {
   document.body.style.overflow = 'hidden';
   
   // Add ESC key listener
-  window.addEventListener('keydown', modal._escListener);
+  const escListener = (e) => {
+    if (e.key === 'Escape') closePreviewModal();
+  };
+  modal._escListener = escListener;
+  window.addEventListener('keydown', escListener);
   
   // Get form data
   const id_image = itemCard.querySelector('[id^="id_image_"]').value;
@@ -299,6 +308,7 @@ function closePreviewModal() {
     modal.classList.remove('show');
     document.body.style.overflow = '';
     window.removeEventListener('keydown', modal._escListener);
+    
     // Remove preview listeners
     if (currentPreviewListeners.keydown) {
       document.removeEventListener('keydown', currentPreviewListeners.keydown);
@@ -307,7 +317,20 @@ function closePreviewModal() {
       document.removeEventListener('mouseup', currentPreviewListeners.mouseup);
       currentPreviewListeners = {};
     }
+    
+    // Completely remove the modal from DOM after animation completes
+    setTimeout(() => {
+      modal.remove();
+    }, 300);
   }
+  
+  // Clean up any stray loading spinners that might be left in the document
+  document.querySelectorAll('.loading-spinner').forEach(spinner => {
+    // Only remove spinners that are not inside active modals
+    if (!spinner.closest('.modal-content.show')) {
+      spinner.remove();
+    }
+  });
 }
 
 // Handle Approval Submit

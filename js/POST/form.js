@@ -2,7 +2,7 @@ import { initFirstItem, addItemFunction, setupForm, setupMultiStepForm } from '.
 
 document.addEventListener('DOMContentLoaded', () => {
   initFirstItem();
-  setupForm('http://127.0.0.1:5000'); // ganti ke baseURL lo
+  setupForm('http://100.124.58.32:5000'); // ganti ke baseURL lo
   setupMultiStepForm();
 });
 

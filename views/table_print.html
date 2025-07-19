@@ -1,39 +1,47 @@
-<div>
-    <h2>Table Print</h2>
-    <input type="text" id="searchInput" placeholder="Search in all fields...">
-    <table id="printTable" border="1">
-        <thead>
-            <tr>
-                <th>ID Print</th>
-                <th>ID Order Detail</th>
-                <th>Print Image Path</th>
-                <th>Status</th>
-                <th>Timestamp</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
+<!-- Table Print content -->
+<!-- Load Print CSS -->
+<link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/print.css">
+<link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/print_mobile.css">
+<div class="print-container">
+  <h2>Daftar Print</h2>
+  
+  <div id="messageContainer"></div>
+  
+  <!-- Search input -->
+  <input type="text" id="searchInput" placeholder="Cari data print..." />
+  
+  <!-- Loading indicator -->
+  <div id="loadingIndicator" class="loading-indicator">
+    <div class="spinner"></div>
+    <p>Memuat data print...</p>
+  </div>
+  
+  <!-- Table container -->
+  <div class="table-responsive">
+    <table id="printTable">
+      <thead>
+        <tr>
+          <th>ID Print</th>
+          <th>ID Order Detail</th>
+          <th>Path Gambar</th>
+          <th>Status</th>
+          <th>Tanggal Dibuat</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="printTableBody">
+        <!-- Data will be loaded here dynamically -->
+      </tbody>
     </table>
-    <script>
-        function loadPrints() {
-            fetch('/print')
-                .then(response => response.json())
-                .then(data => {
-                    const tableBody = document.querySelector('#printTable tbody');
-                    tableBody.innerHTML = '';
-                    data.forEach(printItem => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${printItem.id_print}</td>
-                            <td>${printItem.id_order_detail}</td>
-                            <td>${printItem.print_image_path}</td>
-                            <td>${printItem.status}</td>
-                            <td>${printItem.timestamp}</td>
-                        `;
-                        tableBody.appendChild(row);
-                    });
-                })
-                .catch(error => console.error('Error fetching prints:', error));
-        }
-        window.onload = loadPrints;
-    </script>
+  </div>
+  
+  <!-- No data message -->
+  <div id="noDataMessage" class="no-data-message" style="display: none;">
+    Tidak ada data print yang tersedia.
+  </div>
+  
+  <!-- No results message -->
+  <div id="noResultsMessage" class="no-results-message" style="display: none;">
+    Tidak ada hasil yang cocok dengan pencarian Anda.
+  </div>
 </div>
