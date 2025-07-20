@@ -1,0 +1,54 @@
+<!-- Table Orders content -->
+<!-- Load Orders CSS -->
+<link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/orders.css">
+<!-- Load Order Detail CSS -->
+<link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/order_detail.css">
+<!-- Load Order Detail Mobile CSS -->
+<link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/order_detail_mobile.css">
+<div class="orders-container">
+  <h2>Daftar Pesanan</h2>
+  
+  <div id="messageContainer"></div>
+  
+  <!-- Search input -->
+  <input type="text" id="searchInput" placeholder="Cari pesanan..." />
+  
+  <!-- Loading indicator -->
+  <div id="loadingIndicator" class="loading-indicator">
+    <div class="spinner"></div>
+    <p>Memuat data pesanan...</p>
+  </div>
+  
+  <!-- Table container -->
+  <div class="table-responsive">
+    <table id="ordersTable">
+      <thead>
+        <tr>
+          <th>ID Pesanan</th>
+          <th>Admin</th>
+          <th>Platform</th>
+          <th>Nama Customer</th>
+          <th>Deadline</th>
+          <th>Status Print</th>
+          <th>Tanggal Dibuat</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="ordersTableBody">
+        <!-- Data will be loaded here dynamically -->
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- No data message -->
+  <div id="noDataMessage" class="no-data-message" style="display: none;">
+    Tidak ada data pesanan yang tersedia.
+  </div>
+  
+  <!-- No results message -->
+  <div id="noResultsMessage" class="no-results-message" style="display: none;">
+    Tidak ada hasil yang cocok dengan pencarian Anda.
+  </div>
+</div>
+
+<!-- Script akan dimuat otomatis oleh index.html -->

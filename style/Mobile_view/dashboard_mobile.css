@@ -1,0 +1,148 @@
+/* dashboard_mobile.css - Mobile optimization for dashboard */
+
+@media (max-width: 768px) {
+  /* Dashboard Container */
+  .dashboard-container {
+    padding: 0.75rem;
+    margin: 0.5rem;
+    gap: 1rem;
+  }
+
+  /* Dashboard Header */
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .dashboard-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .dashboard-subtitle {
+    font-size: 1rem;
+  }
+
+  /* Stats Cards */
+  .stats-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .stat-value {
+    font-size: 1.75rem;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+  }
+
+  /* Charts Section */
+  .charts-container {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .chart-container {
+    width: 100%;
+    min-height: 250px;
+    padding: 0.75rem;
+    border-radius: 12px;
+  }
+
+  .chart-title {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Recent Orders */
+  .recent-orders {
+    overflow-x: auto;
+    padding: 0.75rem;
+    border-radius: 12px;
+  }
+
+  .recent-orders-title {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Optimize table display for mobile */
+  .recent-orders table {
+    min-width: 100%;
+    font-size: 0.9rem;
+  }
+
+  .recent-orders th,
+  .recent-orders td {
+    padding: 0.6rem 0.5rem;
+  }
+
+  /* Status Indicators */
+  .status-indicator {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.8rem;
+    border-radius: 8px;
+  }
+
+  /* Action Buttons */
+  .action-button {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    min-height: 36px;
+  }
+
+  /* Add spacing at bottom to prevent overlap with mobile nav */
+  body.has-mobile-nav .dashboard-container {
+    margin-bottom: 4rem;
+    padding-bottom: 1rem;
+  }
+
+  /* Optimize charts for mobile */
+  canvas.chart-canvas {
+    height: 200px !important;
+    width: 100% !important;
+  }
+
+  /* Optimize date filters */
+  .date-filter-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .date-filter-container label {
+    font-size: 0.9rem;
+  }
+
+  .date-filter-container input[type="date"] {
+    width: 100%;
+    padding: 0.6rem;
+    font-size: 16px; /* Prevents iOS zoom */
+  }
+
+  /* Optimize filter buttons */
+  .filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .filter-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 8px;
+    flex: 1 0 auto;
+    min-width: calc(50% - 0.5rem);
+    text-align: center;
+  }
+}

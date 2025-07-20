@@ -1,0 +1,53 @@
+<!-- Product Form content -->
+<link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/product_mobile.css">
+<div>
+    <h2>Form Product - Create Order</h2>
+    <form id="orderForm">
+        <label for="id_order">ID Order:</label>
+        <input type="text" id="id_order" name="id_order" required><br>
+        
+        <label for="id_admin">Admin:</label>
+        <select id="id_admin" name="id_admin" required>
+            <option value="">-- Pilih Admin --</option>
+            <!-- Opsi admin akan diisi secara dinamis oleh populateAdminDropdown -->
+        </select><br>
+        
+        <label for="platform">Platform:</label>
+        <input type="text" id="platform" name="platform" required><br>
+        
+        <label for="nama_customer">Nama Customer:</label>
+        <input type="text" id="nama_customer" name="nama_customer" required><br>
+        
+        <label for="deadline">Deadline:</label>
+        <input type="date" id="deadline" name="deadline" required><br>
+        
+        <label for="status_print">Status Print:</label>
+        <select id="status_print" name="status_print">
+            <option value="pending">Pending</option>
+            <option value="printed">Printed</option>
+            <option value="cancelled">Cancelled</option>
+        </select><br>
+        
+        <button type="submit">Submit</button>
+    </form>
+    <script>
+        document.getElementById('orderForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const data = {};
+            formData.forEach((value, key) => { data[key] = value; });
+            fetch('/order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }).then(response => response.json()).then(result => {
+                alert('Order created successfully!');
+                // Optionally, reset form or redirect
+            }).catch(error => {
+                alert('Error creating order: ' + error);
+            });
+        });
+    </script>
+</div>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Dashboard</title>
+  <link rel="icon" type="image/jpeg" href="./assets/mnk.jpg" />
+  <link rel="shortcut icon" type="image/jpeg" href="./assets/mnk.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="http://100.124.58.32:5000/style/main.css" />
+  <link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/order_detail.css" />
+  <link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/order_detail_mobile.css" />
+  <link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/mobile.css" />
+  <link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/dashboard_mobile.css" />
+  <link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/input_mobile.css" />
+  <link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/table_mobile.css" />
+</head>
+<body>
+  <div class="container">
+    <button class="mobile-toggle" id="mobileToggle">☰</button>
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <img src="./assets/mnk.jpg" alt="Logo" />
+        <div class="logo-title">Manukashop.id</div>
+      </div>
+
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <span>⚡</span>
+      </button>
+      <nav>
+        <ul>
+          <li><a href="#dashboard" class="nav-link" data-tooltip="Dashboard Overview"><span class="nav-icon">📊</span><span class="nav-text">Dashboard</span></a></li>
+          <li class="dropdown">
+            <a class="nav-title dropdown-toggle"><span class="nav-icon">📂</span><span class="nav-text">Form</span></a>
+            <ul class="sub-menu">
+              <li><a href="#form" class="nav-link sub-link" data-tooltip="Form Input"><span class="nav-icon">📝</span><span class="nav-text">Form Input</span></a></li>
+              <li><a href="#form_admin" class="nav-link sub-link" data-tooltip="Form Admin"><span class="nav-icon">🛡️</span><span class="nav-text">Form Admin</span></a></li>
+              <li><a href="#form_product" class="nav-link sub-link" data-tooltip="Form Product"><span class="nav-icon">🛍️</span><span class="nav-text">Form Product</span></a></li>
+            </ul>
+          </li>
+          <li class="dropdown">
+            <a class="nav-title dropdown-toggle"><span class="nav-icon">📊</span><span class="nav-text">Table</span></a>
+            <ul class="sub-menu">
+              <li><a href="#table_orders" class="nav-link sub-link" data-tooltip="Table Orders"><span class="nav-icon">📋</span><span class="nav-text">Table Orders</span></a></li>
+              <li><a href="#table_print" class="nav-link sub-link" data-tooltip="Table Print"><span class="nav-icon">🖨️</span><span class="nav-text">Table Print</span></a></li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <div class="footer-menu">
+        <a href="#user" data-tooltip="User Profile"><span class="nav-icon">👤</span><span class="nav-text">User</span></a>
+        <a href="#logout" data-tooltip="Sign Out"><span class="nav-icon">🚪</span><span class="nav-text">Logout</span></a>
+      </div>
+    </aside>
+    <main class="main-content">
+      <div id="mainContent"></div>
+    </main>
+  </div>
+
+  <script src="http://100.124.58.32:5000/config/endpoint.js"></script>
+  <script src="./js/components/previewButton.js"></script>
+  <script src="http://100.124.58.32:5000/js/components/mobileNav.js"></script>
+  <script src="http://100.124.58.32:5000/js/components/responsiveTables.js"></script>
+  <script type="module" src="http://100.124.58.32:5000/js/POST/main.js"></script>
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const mobileToggle = document.getElementById('mobileToggle');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      sidebarToggle.style.transform = sidebar.classList.contains('collapsed') ? 'rotate(180deg)' : 'rotate(0deg)';
+    });
+
+    mobileToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !mobileToggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        navLinks.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        if (window.innerWidth <= 768) sidebar.classList.remove('open');
+      });
+    });
+
+    // Dropdown toggle
+    const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+    dropdownToggles.forEach(toggle => {
+      toggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        const parent = toggle.closest('.dropdown');
+        parent.classList.toggle('open');
+      });
+    });
+
+    // Make loadPage function globally accessible
+    window.loadPage = function(page) {
+      fetch(`./views/${page}.html`)
+        .then(res => res.text())
+        .then(html => {
+          document.getElementById('mainContent').innerHTML = html;
+          
+          // Update mobile navigation active state if function exists
+          if (window.updateMobileNavActiveState) {
+            window.updateMobileNavActiveState(page);
+          }
+          
+          // Inisialisasi berdasarkan halaman
+          if (page === 'form') {
+            setTimeout(() => {
+              // Reset form initialization flag
+              window.formInitialized = false;
+              
+              // Clean up any existing form state
+              if (window.initializeForm) {
+                console.log('Re-initializing form after tab switch');
+                window.initializeForm();
+              } else {
+                // Remove any existing form initialization script
+                const existingScript = document.querySelector('script[src="http://100.124.58.32:5000/js/formInit.js"]');
+                if (existingScript) {
+                  existingScript.remove();
+                }
+                
+                // Load form initialization script
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = 'http://100.124.58.32:5000/js/formInit.js';
+                script.onload = () => {
+                  console.log('Form initialization script loaded');
+                };
+                document.head.appendChild(script);
+              }
+            }, 150);
+          } else if (page === 'dashboard') {
+            setTimeout(() => {
+              // Clean up any existing dashboard
+              if (window.cleanupDashboard) {
+                window.cleanupDashboard();
+              }
+              
+              // Load dashboard script if not already loaded
+              if (!window.initDashboard) {
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = 'http://100.124.58.32:5000/js/GET/dashboard.js';
+                script.onload = () => {
+                  console.log('Dashboard script loaded');
+                  if (window.initDashboard) {
+                    window.initDashboard();
+                  }
+                };
+                document.head.appendChild(script);
+              } else {
+                console.log('Re-initializing dashboard after tab switch');
+                window.initDashboard();
+              }
+            }, 150);
+          } else if (page === 'table_orders') {
+            setTimeout(() => {
+              // Load order_detail script if not already loaded
+              if (!window.viewOrderDetail) {
+                const detailScript = document.createElement('script');
+                detailScript.type = 'module';
+                detailScript.src = 'http://100.124.58.32:5000/js/GET/order_detail.js';
+                detailScript.onload = () => {
+                  console.log('Order detail script loaded');
+                  
+                  // Load orders table script after order_detail is loaded
+                  const script = document.createElement('script');
+                  script.type = 'module';
+                  script.src = 'http://100.124.58.32:5000/js/GET/orders.js';
+                  script.onload = () => {
+                    console.log('Orders table script loaded');
+                    if (window.initOrdersTable) {
+                      window.initOrdersTable();
+                    }
+                  };
+                  document.head.appendChild(script);
+                };
+                document.head.appendChild(detailScript);
+              } else {
+                // If order_detail is already loaded, just load orders
+                if (!window.initOrdersTable) {
+                  const script = document.createElement('script');
+                  script.type = 'module';
+                  script.src = 'http://100.124.58.32:5000/js/GET/orders.js';
+                  script.onload = () => {
+                    console.log('Orders table script loaded');
+                    if (window.initOrdersTable) {
+                      window.initOrdersTable();
+                    }
+                  };
+                  document.head.appendChild(script);
+                } else {
+                  console.log('Re-initializing orders table after tab switch');
+                  window.initOrdersTable();
+                }
+              }
+            }, 150);
+          } else if (page === 'table_print') {
+            setTimeout(() => {
+              // Load order_detail script if not already loaded
+              if (!window.viewPrintDetail) {
+                const detailScript = document.createElement('script');
+                detailScript.type = 'module';
+                detailScript.src = 'http://100.124.58.32:5000/js/GET/order_detail.js';
+                detailScript.onload = () => {
+                  console.log('Order detail script loaded');
+                  
+                  // Load print table script after order_detail is loaded
+                  const script = document.createElement('script');
+                  script.type = 'module';
+                  script.src = 'http://100.124.58.32:5000/js/GET/print.js';
+                  script.onload = () => {
+                    console.log('Print table script loaded');
+                    if (window.initPrintTable) {
+                      window.initPrintTable();
+                    }
+                  };
+                  document.head.appendChild(script);
+                };
+                document.head.appendChild(detailScript);
+              } else {
+                // If order_detail is already loaded, just load print
+                if (!window.initPrintTable) {
+                  const script = document.createElement('script');
+                  script.type = 'module';
+                  script.src = 'http://100.124.58.32:5000/js/GET/print.js';
+                  script.onload = () => {
+                    console.log('Print table script loaded');
+                    if (window.initPrintTable) {
+                      window.initPrintTable();
+                    }
+                  };
+                  document.head.appendChild(script);
+                } else {
+                  console.log('Re-initializing print table after tab switch');
+                  window.initPrintTable();
+                }
+              }
+            }, 150);
+          }
+        });
+    }
+
+    window.onload = () => {
+      // Load dashboard as default page
+      window.loadPage('dashboard');
+      
+      // Initialize mobile navigation if needed
+      if (window.innerWidth <= 768 && window.initMobileNav) {
+        window.initMobileNav();
+      }
+    };
+    document.querySelectorAll('nav a').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const page = link.getAttribute('href').replace('#', '');
+        loadPage(page);
+      });
+    });
+  </script>
+</body>
+</html>
