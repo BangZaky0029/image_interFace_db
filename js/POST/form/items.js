@@ -185,10 +185,33 @@ async function showImageSearch(brand, itemId) {
     let images;
     
     if (!cachedImages) {
-      // Fetch images from API hanya sekali
-      const response = await fetch('http://100.124.58.32:5000/images');
-      images = await response.json();
-      localStorage.setItem('cachedImages', JSON.stringify(images));
+      // Fetch images from API hanya sekali - gunakan endpoint baru
+      const response = await fetch(`http://100.124.58.32:5000/api/images/path/${brand}`);
+      const responseData = await response.json();
+      
+      if (responseData.status === 'success') {
+        images = responseData.data.map(img => ({
+          id_image: img.name_without_ext, // Gunakan nama file tanpa ekstensi sebagai ID
+          image_name: img.name_without_ext,
+          image_path: img.path,
+          image_url: img.url,
+          product_name: brand
+        }));
+        localStorage.setItem('cachedImages', JSON.stringify(images));
+      } else if (Array.isArray(responseData)) {
+        // Handle case where API returns array directly
+        images = responseData.map(img => ({
+          id_image: img.name_without_ext || img.name || extractFilenameFromPath(img.path),
+          image_name: img.name_without_ext || img.name || extractFilenameFromPath(img.path),
+          image_path: img.path,
+          image_url: img.url,
+          product_name: brand
+        }));
+        localStorage.setItem('cachedImages', JSON.stringify(images));
+      } else {
+        console.error('Error fetching images:', responseData.message || 'Unknown error');
+        images = [];
+      }
     } else {
       images = JSON.parse(cachedImages);
     }
@@ -219,6 +242,7 @@ async function showImageSearch(brand, itemId) {
     
   } catch (error) {
     console.error('Error fetching images:', error);
+    showNotification('Gagal memuat data gambar. Silakan coba lagi.', 'error');
   }
 }
 
@@ -247,83 +271,54 @@ function getImageUrl(imagePath) {
   
   console.log('Original image path:', imagePath);
   
+  // Jika sudah berupa URL, kembalikan langsung
+  if (imagePath.startsWith('http')) {
+    return imagePath;
+  }
+  
   // Normalize path separators
   let normalizedPath = imagePath.replace(/\\/g, '/');
+  
+  // Extract brand and filename information
+  let brand = 'Marsoto'; // Default brand
+  let filename = '';
   
   // Handle different path formats:
   // 1. Full path: D:/assets/database_images/Marsoto/DUBAIHM0045.jpg
   // 2. Relative path: Marsoto/DUBAIHM0045.jpg
   // 3. Just filename: DUBAIHM0045.jpg
   
-  // Remove drive letter and assets/database_images prefix if present
-  if (normalizedPath.includes('database_images/')) {
-    const parts = normalizedPath.split('database_images/');
-    if (parts.length > 1) {
-      const relativePath = parts[1];
-      const finalUrl = `http://100.124.58.32:5000/static/images/${relativePath}`;
-      console.log('Generated URL from database_images path:', finalUrl);
-      return finalUrl;
+  // Try to extract brand from path
+  const pathParts = normalizedPath.split('/');
+  const brandFolders = ['Marsoto', 'MNK'];
+  let brandIndex = -1;
+  
+  for (let i = 0; i < pathParts.length; i++) {
+    if (brandFolders.includes(pathParts[i])) {
+      brand = pathParts[i];
+      brandIndex = i;
+      break;
     }
   }
   
-  // Handle paths that start with drive letter but don't have database_images
-  // Example: D:assetsdatabase_imagesMarsotoDUBAIHM0045.jpg (malformed path)
-  if (normalizedPath.match(/^[A-Za-z]:/)) {
-    // Try to extract the brand and filename from malformed paths
-    // Look for brand patterns (Marsoto, MNK) in the path
-    const brandMatch = normalizedPath.match(/(Marsoto|MNK)([A-Z0-9]+\.[a-z]+)$/i);
-    if (brandMatch) {
-      const brand = brandMatch[1];
-      const filename = brandMatch[2];
-      const relativePath = `${brand}/${filename}`;
-      const finalUrl = `http://100.124.58.32:5000/static/images/${relativePath}`;
-      console.log('Generated URL from malformed path:', finalUrl);
-      return finalUrl;
-    }
-    
-    // Try to find common folder patterns and extract relative path
-    const pathParts = normalizedPath.split('/');
-    let startIndex = -1;
-    
-    // Look for brand folder names
-    const brandFolders = ['Marsoto', 'MNK'];
-    for (let i = 0; i < pathParts.length; i++) {
-      if (brandFolders.includes(pathParts[i])) {
-        startIndex = i;
-        break;
-      }
-    }
-    
-    if (startIndex >= 0) {
-      const relativePath = pathParts.slice(startIndex).join('/');
-      const finalUrl = `http://100.124.58.32:5000/static/images/${relativePath}`;
-      console.log('Generated URL from brand folder path:', finalUrl);
-      return finalUrl;
-    }
-  }
+  // Extract filename
+  filename = pathParts[pathParts.length - 1];
   
-  // If path already looks like a relative path (brand/filename)
-  if (normalizedPath.match(/^(Marsoto|MNK)\//)) {
-    const finalUrl = `http://100.124.58.32:5000/static/images/${normalizedPath}`;
-    console.log('Generated URL from relative path:', finalUrl);
-    return finalUrl;
-  }
-  
-  // Last resort: assume it's just a filename and try to determine brand from filename
-  const filename = normalizedPath.split('/').pop();
-  
-  // Try to determine brand from filename pattern
-  if (filename.match(/^(DUBAI|TURKI|INDIA)/i)) {
-    // These patterns typically belong to Marsoto
-    const finalUrl = `http://100.124.58.32:5000/static/images/Marsoto/${filename}`;
-    console.log('Generated URL assuming Marsoto brand:', finalUrl);
-    return finalUrl;
+  // Determine subdirectory based on filename pattern
+  let subdir = '';
+  if (filename.match(/^HM/i)) {
+    subdir = 'BATIK';
+  } else if (filename.match(/^(DUBAI|TURKI|INDIA)/i)) {
+    subdir = 'DUBAI';
   } else {
-    // Default to MNK for other patterns
-    const finalUrl = `http://100.124.58.32:5000/static/images/MNK/${filename}`;
-    console.log('Generated URL assuming MNK brand:', finalUrl);
-    return finalUrl;
+    // Default subdir based on brand
+    subdir = brand === 'Marsoto' ? 'DUBAI' : '';
   }
+  
+  // Create URL using the new API endpoint format
+  const finalUrl = `http://100.124.58.32:5000/api/images/path/${brand}/${subdir}/${filename}`;
+  console.log('Generated URL with new API endpoint:', finalUrl);
+  return finalUrl;
 }
 
 // Fungsi untuk menangani pencarian gambar
@@ -355,12 +350,20 @@ function handleImageSearch(event) {
   // Display search results
   filteredImages.forEach(image => {
     const filename = image.image_name || extractFilenameFromPath(image.image_path);
-    const imageUrl = image.image_url || getImageUrl(image.image_path);
+    let imageUrl = image.image_url || getImageUrl(image.image_path);
+    
+    // Jika URL masih kosong, buat URL berdasarkan pola nama file
+    if (!imageUrl || imageUrl === '') {
+      const brand = searchInput.dataset.brand || 'Marsoto';
+      const subdir = filename.startsWith('HM') ? 'BATIK' : 'DUBAI';
+      imageUrl = `http://100.124.58.32:5000/static/images/${brand}/${filename}`;
+    }
+    
     const resultItem = document.createElement('div');
     resultItem.className = 'search-result-item';
     resultItem.innerHTML = `
       <span class="result-filename">${filename}</span>
-      <button type="button" class="select-result-btn" onclick="selectImageFromSearch(${image.id_image}, '${filename}', '${imageUrl}', ${itemId})">Pilih</button>
+      <button type="button" class="select-result-btn" onclick="selectImageFromSearch('${image.id_image}', '${filename}', '${imageUrl}', ${itemId})">Pilih</button>
     `;
     searchResults.appendChild(resultItem);
   });
@@ -386,15 +389,35 @@ window.selectImageFromSearch = function(imageId, imageName, imageUrl, itemId) {
   
   // Show enhanced preview with larger thumbnail
   if (imageThumbnail) {
-    const finalImageUrl = imageUrl || getImageUrl(imageName);
+    // Pastikan URL gambar valid
+    let finalImageUrl = imageUrl;
+    if (!finalImageUrl || finalImageUrl === '') {
+      // Jika URL tidak ada, buat URL berdasarkan endpoint API
+      const brand = document.querySelector(`#item-${itemId} .image-brand-btn.active`)?.dataset.brand || 'Marsoto';
+      const subdir = imageName.startsWith('HM') ? 'BATIK' : 'DUBAI'; // Asumsi berdasarkan pola nama file
+      finalImageUrl = `http://100.124.58.32:5000/api/images/${brand}/${subdir}/${imageName}`;
+    }
+    
+    // Pastikan URL menggunakan IP yang benar, bukan localhost
+    if (finalImageUrl.includes('localhost')) {
+      finalImageUrl = finalImageUrl.replace('localhost', '100.124.58.32');
+    }
     
     imageThumbnail.innerHTML = `
       <div class="image-preview-container">
-        <img src="${finalImageUrl}" alt="${imageName}" class="preview-image">
+        <div class="image-loading-spinner" style="display: block;">
+          <div class="spinner"></div>
+          <span>Memuat gambar...</span>
+        </div>
+        <img src="${finalImageUrl}" alt="${imageName}" class="preview-image" style="display: none;" 
+             onload="this.style.display='block'; this.parentElement.querySelector('.image-loading-spinner').style.display='none';" 
+             onerror="this.style.display='none'; this.parentElement.querySelector('.image-loading-spinner').style.display='none'; this.parentElement.querySelector('.image-error').style.display='block';">
+        <div class="image-error" style="display: none;">Gambar tidak dapat dimuat</div>
         <div class="image-info">
           <span class="image-id">ID: ${imageId}</span>
           <span class="image-name">${imageName}</span>
         </div>
+        <button type="button" class="preview-fullsize-btn" onclick="showFullSizePreview('${finalImageUrl}', '${imageName}', '${imageId}')">Lihat Ukuran Penuh</button>
       </div>
     `;
   }
@@ -404,6 +427,9 @@ window.selectImageFromSearch = function(imageId, imageName, imageUrl, itemId) {
   if (searchContainer) {
     searchContainer.style.display = 'none';
   }
+  
+  // Tampilkan notifikasi sukses
+  showNotification(`Gambar ${imageName} (ID: ${imageId}) berhasil dipilih`, 'success');
 };
 
 // Fungsi untuk memilih gambar (untuk backward compatibility)
@@ -425,18 +451,35 @@ window.selectImage = function(imageId, imageName, itemId, imagePathOrUrl = null)
   }
   
   // Show enhanced preview with larger thumbnail if imagePathOrUrl is provided
-  if (imagePathOrUrl && imageThumbnail) {
-    // Check if it's already a URL or needs conversion
-    const imageUrl = imagePathOrUrl.startsWith('http') ? imagePathOrUrl : getImageUrl(imagePathOrUrl);
+  if (imageThumbnail) {
+    // Pastikan URL gambar valid
+    let imageUrl = '';
+    
+    if (imagePathOrUrl) {
+      // Check if it's already a URL or needs conversion
+      imageUrl = imagePathOrUrl.startsWith('http') ? imagePathOrUrl : getImageUrl(imagePathOrUrl);
+    } else {
+      // Jika URL tidak ada, buat URL berdasarkan endpoint API
+      const brand = document.querySelector(`#item-${itemId} .image-brand-btn.active`)?.dataset.brand || 'Marsoto';
+      const subdir = imageName.startsWith('HM') ? 'BATIK' : 'DUBAI'; // Asumsi berdasarkan pola nama file
+      imageUrl = `http://100.124.58.32:5000/api/images/${brand}/${subdir}/${imageName}`;
+    }
     
     imageThumbnail.innerHTML = `
       <div class="image-preview-container">
-        <img src="${imageUrl}" alt="${imageName}" class="preview-image">
+        <div class="image-loading-spinner" style="display: block;">
+          <div class="spinner"></div>
+          <span>Memuat gambar...</span>
+        </div>
         <img src="${imageUrl}" alt="${imageName}" class="preview-image" style="display: none;" 
              onload="this.style.display='block'; this.parentElement.querySelector('.image-loading-spinner').style.display='none';" 
              onerror="this.style.display='none'; this.parentElement.querySelector('.image-loading-spinner').style.display='none'; this.parentElement.querySelector('.image-error').style.display='block';">
         <div class="image-error" style="display: none;">Gambar tidak dapat dimuat</div>
-        <button type="button" class="preview-fullsize-btn" onclick="showFullSizePreview('${imageUrl}', '${imageName}', ${imageId})">Lihat Ukuran Penuh</button>
+        <div class="image-info">
+          <span class="image-id">ID: ${imageId}</span>
+          <span class="image-name">${imageName}</span>
+        </div>
+        <button type="button" class="preview-fullsize-btn" onclick="showFullSizePreview('${imageUrl}', '${imageName}', '${imageId}')">Lihat Ukuran Penuh</button>
       </div>
     `;
   }
@@ -446,6 +489,135 @@ window.selectImage = function(imageId, imageName, itemId, imagePathOrUrl = null)
 
 // Fungsi closeImagePopup dan showMotifImages tidak lagi digunakan
 // telah digantikan dengan fitur pencarian inline
+
+// Tambahkan CSS untuk indikator loading dan preview gambar
+const styleElement = document.createElement('style');
+styleElement.textContent = `
+  .image-preview-container {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    background-color: #f9f9f9;
+  }
+  
+  .preview-image {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    object-fit: contain;
+    margin-bottom: 10px;
+  }
+  
+  .image-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 0.8rem;
+    color: #666;
+  }
+  
+  .preview-fullsize-btn {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-size: 0.9rem;
+  }
+  
+  .preview-fullsize-btn:hover {
+    background-color: #45a049;
+  }
+  
+  .fullsize-preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .fullsize-preview-content {
+    position: relative;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 90%;
+    max-height: 90%;
+    overflow: auto;
+  }
+  
+  .close-preview {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #333;
+  }
+  
+  .fullsize-image-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+  }
+  
+  .fullsize-image {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+  }
+  
+  .image-details {
+    margin-top: 15px;
+    width: 100%;
+    font-size: 0.9rem;
+  }
+  
+  .image-loading-spinner {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .spinner {
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top: 3px solid #3498db;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .image-error {
+    color: #d9534f;
+    font-size: 0.8rem;
+    text-align: center;
+  }
+`;
+document.head.appendChild(styleElement);
 
 // Fungsi untuk menampilkan notifikasi
 function showNotification(message, type = 'info') {
@@ -473,30 +645,31 @@ function showNotification(message, type = 'info') {
 
 // Fungsi untuk menampilkan preview ukuran penuh
 window.showFullSizePreview = function(imageUrl, imageName, imageId) {
+  // Pastikan URL menggunakan IP yang benar, bukan localhost
+  if (imageUrl.includes('localhost')) {
+    imageUrl = imageUrl.replace('localhost', '100.124.58.32');
+  }
+  
   // Create modal overlay
   const modal = document.createElement('div');
-  modal.className = 'image-preview-modal';
+  modal.className = 'fullsize-preview-modal';
   modal.innerHTML = `
-    <div class="modal-overlay" onclick="closeFullSizePreview()">
-      <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-header">
-          <h3>Preview Gambar</h3>
-          <button class="modal-close-btn" onclick="closeFullSizePreview()">&times;</button>
+    <div class="fullsize-preview-content">
+      <span class="close-preview" onclick="closeFullSizePreview()">&times;</span>
+      <h3>${imageName} (ID: ${imageId})</h3>
+      <div class="fullsize-image-container">
+        <div class="image-loading-spinner" style="display: block;">
+          <div class="spinner"></div>
+          <span>Memuat gambar...</span>
         </div>
-        <div class="modal-body">
-          <div class="modal-loading-spinner">
-            <div class="spinner"></div>
-            <span>Memuat gambar...</span>
-          </div>
-          <img src="${imageUrl}" alt="${imageName}" class="fullsize-preview-image" style="display: none;" 
-               onload="this.style.display='block'; this.parentElement.querySelector('.modal-loading-spinner').style.display='none';" 
-               onerror="this.style.display='none'; this.parentElement.querySelector('.modal-loading-spinner').style.display='none'; this.parentElement.querySelector('.image-error').style.display='block';">
-          <div class="image-error" style="display: none;">Gambar tidak dapat dimuat</div>
-          <div class="image-details">
-            <p><strong>ID:</strong> ${imageId}</p>
-            <p><strong>Nama:</strong> ${imageName}</p>
-            <p><strong>URL:</strong> <a href="${imageUrl}" target="_blank">${imageUrl}</a></p>
-          </div>
+        <img src="${imageUrl}" alt="${imageName}" class="fullsize-image" style="display: none;" 
+             onload="this.style.display='block'; this.parentElement.querySelector('.image-loading-spinner').style.display='none';" 
+             onerror="this.style.display='none'; this.parentElement.querySelector('.image-loading-spinner').style.display='none'; this.parentElement.querySelector('.image-error').style.display='block';">
+        <div class="image-error" style="display: none;">Gambar tidak dapat dimuat</div>
+        <div class="image-details">
+          <p><strong>ID:</strong> ${imageId}</p>
+          <p><strong>Nama:</strong> ${imageName}</p>
+          <p><strong>URL:</strong> <a href="${imageUrl}" target="_blank">${imageUrl}</a></p>
         </div>
       </div>
     </div>
@@ -507,18 +680,25 @@ window.showFullSizePreview = function(imageUrl, imageName, imageId) {
   
   // Show modal with animation
   setTimeout(() => {
-    modal.classList.add('show');
+    modal.style.opacity = '1';
   }, 10);
   
   // Store modal reference for cleanup
   window.currentImageModal = modal;
+  
+  // Event listener untuk menutup modal jika klik di luar konten
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeFullSizePreview();
+    }
+  });
 };
 
 // Fungsi untuk menutup preview ukuran penuh
 window.closeFullSizePreview = function() {
   const modal = window.currentImageModal;
   if (modal) {
-    modal.classList.remove('show');
+    modal.style.opacity = '0';
     setTimeout(() => {
       modal.remove();
       window.currentImageModal = null;

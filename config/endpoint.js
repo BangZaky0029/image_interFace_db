@@ -1,5 +1,6 @@
 // Ganti baseURL ini sesuai domain/server lo nanti
 // const baseURL = 'http://127.0.0.1:5000';
+// const baseURL = 'http://localhost:5000'; // Jangan gunakan localhost
 const baseURL = 'http://100.124.58.32:5000';
 
 // Fungsi untuk menampilkan notifikasi

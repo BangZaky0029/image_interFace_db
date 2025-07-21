@@ -20,6 +20,11 @@ async function getServerIP() {
     const resp = await fetch('/api/server-info');
     const data = await resp.json();
     serverIP = data.ip || '100.124.58.32';
+    // Pastikan tidak menggunakan localhost
+    if (serverIP === 'localhost' || serverIP === '127.0.0.1') {
+      serverIP = '100.124.58.32';
+      console.log('Replacing localhost with 100.124.58.32');
+    }
   } catch (err) {
     console.log('Using 100.124.58.32 as fallback');
   }
