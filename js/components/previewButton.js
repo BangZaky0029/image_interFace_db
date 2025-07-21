@@ -137,10 +137,7 @@ async function openPreviewModalForItem(itemCard) {
   // Create a fresh modal
   const modal = createPreviewModal();
   const grid = modal.querySelector('#previewGrid');
-  
-  // Reset grid content
-  grid.innerHTML = '<div class="loading-spinner">Generating preview...</div>';
-  
+    
   // Show modal
   modal.classList.remove('hidden', 'd-none');
   modal.style.display = '';

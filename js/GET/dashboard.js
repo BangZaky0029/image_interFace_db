@@ -172,15 +172,15 @@ function createDashboardHTML() {
       
       <div class="dashboard-stats">
         <div class="stat-card" id="totalOrders">
-          <h3>Total Pesanan</h3>
+          <h3>Total Orderan</h3>
           <p class="stat-value">-</p>
         </div>
         <div class="stat-card" id="pendingOrders">
-          <h3>Pesanan Tertunda</h3>
+          <h3>Orderan Tertunda</h3>
           <p class="stat-value">-</p>
         </div>
         <div class="stat-card" id="completedOrders">
-          <h3>Pesanan Selesai</h3>
+          <h3>Orderan Selesai</h3>
           <p class="stat-value">-</p>
         </div>
       </div>
@@ -189,6 +189,30 @@ function createDashboardHTML() {
         <div class="chart-container">
           <h3>Status Pesanan</h3>
           <div id="statusChart" class="chart">Loading chart...</div>
+        </div>
+        
+        <div class="chart-container">
+          <h3>Trafik Orderan</h3>
+          <div class="traffic-filter">
+            <button class="traffic-btn active" data-period="hari">Hari Ini</button>
+            <button class="traffic-btn" data-period="minggu">Minggu Ini</button>
+            <button class="traffic-btn" data-period="bulan">Bulan Ini</button>
+            <button class="traffic-btn" data-period="tahun">Tahun Ini</button>
+            <button class="traffic-btn" data-period="custom">Custom</button>
+          </div>
+          <div id="trafficChart" class="chart">Loading chart...</div>
+          <div class="traffic-info">
+            <div class="traffic-legend">
+              <div class="legend-item">
+                <div class="legend-color order-count"></div>
+                <span>Jumlah Orderan</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color order-qty"></div>
+                <span>Jumlah Qty (pcs)</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -280,6 +304,12 @@ function updateDashboardStats(data) {
   } else {
     console.warn('Status chart element not found in the DOM. Check if dashboard HTML is properly loaded.');
   }
+  
+  // Initialize traffic chart with default period (today)
+  initTrafficChart(data, 'hari');
+  
+  // Add event listeners to traffic filter buttons
+  setupTrafficFilterButtons(data);
 }
 
 /**
@@ -321,6 +351,266 @@ function showMessage(message, type = 'info') {
       }
     }, 5000);
   }
+}
+
+/**
+ * Sets up event listeners for traffic filter buttons
+ * @param {Array} data - The orders data from API
+ */
+function setupTrafficFilterButtons(data) {
+  const trafficButtons = document.querySelectorAll('.traffic-btn');
+  if (trafficButtons.length === 0) {
+    console.warn('Traffic filter buttons not found in the DOM.');
+    return;
+  }
+  
+  trafficButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      // Remove active class from all buttons
+      trafficButtons.forEach(btn => btn.classList.remove('active'));
+      
+      // Add active class to clicked button
+      button.classList.add('active');
+      
+      // Get period from data attribute
+      const period = button.getAttribute('data-period');
+      
+      // Update traffic chart based on selected period
+      initTrafficChart(data, period);
+    });
+  });
+}
+
+/**
+ * Initializes the traffic chart based on the selected period
+ * @param {Array} data - The orders data from API
+ * @param {string} period - The selected period (hari, minggu, bulan, tahun, custom)
+ */
+function initTrafficChart(data, period) {
+  const trafficChartElement = document.getElementById('trafficChart');
+  if (!trafficChartElement) {
+    console.warn('Traffic chart element not found in the DOM.');
+    return;
+  }
+  
+  // Process data based on selected period
+  const { labels, orderCounts, orderQtys, timeLabel } = processTrafficData(data, period);
+  
+  // Create chart HTML
+  let chartHTML = '<div class="traffic-chart-container">';
+  
+  // Add time label if available
+  if (timeLabel) {
+    chartHTML += `<div class="traffic-time-label">${timeLabel}</div>`;
+  }
+  
+  // Create chart grid
+  chartHTML += '<div class="traffic-chart-grid">';
+  
+  // Find max values for scaling
+  const maxOrderCount = Math.max(...orderCounts, 1);
+  const maxOrderQty = Math.max(...orderQtys, 1);
+  
+  // Create bars for each time point
+  for (let i = 0; i < labels.length; i++) {
+    const orderCountHeight = (orderCounts[i] / maxOrderCount) * 100;
+    const orderQtyHeight = (orderQtys[i] / maxOrderQty) * 100;
+    
+    chartHTML += `
+      <div class="traffic-chart-column">
+        <div class="traffic-chart-bars">
+          <div class="traffic-bar order-count" style="height: ${orderCountHeight}%" title="${orderCounts[i]} orderan"></div>
+          <div class="traffic-bar order-qty" style="height: ${orderQtyHeight}%" title="${orderQtys[i]} pcs"></div>
+        </div>
+        <div class="traffic-chart-label">${labels[i]}</div>
+      </div>
+    `;
+  }
+  
+  chartHTML += '</div>'; // Close chart grid
+  
+  // Add tooltip for current selection
+  if (period === 'hari') {
+    const currentHour = new Date().getHours();
+    const currentIndex = labels.findIndex(label => parseInt(label) === currentHour);
+    
+    if (currentIndex !== -1) {
+      chartHTML += `
+        <div class="traffic-current-info">
+          <div>Jam ${labels[currentIndex]}:00</div>
+          <div>Jumlah: ${orderCounts[currentIndex]} orderan</div>
+          <div>Total: ${orderQtys[currentIndex]} pcs</div>
+        </div>
+      `;
+    }
+  }
+  
+  chartHTML += '</div>'; // Close chart container
+  
+  // Update chart element
+  trafficChartElement.innerHTML = chartHTML;
+}
+
+/**
+ * Processes order data based on the selected period
+ * @param {Array} data - The orders data from API
+ * @param {string} period - The selected period (hari, minggu, bulan, tahun, custom)
+ * @returns {Object} Processed data for the traffic chart
+ */
+function processTrafficData(data, period) {
+  const now = new Date();
+  let labels = [];
+  let orderCounts = [];
+  let orderQtys = [];
+  let timeLabel = '';
+  
+  // Helper function to get total quantity from an order
+  const getOrderQty = (order) => {
+    // Assuming order.qty exists and is a number
+    // If not, you may need to adjust this based on your data structure
+    return order.qty ? parseInt(order.qty) : 1;
+  };
+  
+  // Process data based on period
+  switch (period) {
+    case 'hari': // Today (hourly)
+      timeLabel = `${now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+      
+      // Create 24 hour labels (0-23)
+      labels = Array.from({ length: 24 }, (_, i) => i.toString());
+      
+      // Initialize counts and qtys arrays with zeros
+      orderCounts = new Array(24).fill(0);
+      orderQtys = new Array(24).fill(0);
+      
+      // Filter orders for today
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      
+      const todayOrders = data.filter(order => {
+        const orderDate = new Date(order.created_at || order.date || order.timestamp || 0);
+        return orderDate >= todayStart && orderDate < todayEnd;
+      });
+      
+      // Count orders and sum quantities by hour
+      todayOrders.forEach(order => {
+        const orderDate = new Date(order.created_at || order.date || order.timestamp || 0);
+        const hour = orderDate.getHours();
+        orderCounts[hour]++;
+        orderQtys[hour] += getOrderQty(order);
+      });
+      break;
+      
+    case 'minggu': // This week (daily)
+      // Get the first day of the week (Sunday or Monday depending on locale)
+      const firstDayOfWeek = new Date(now);
+      const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, ...
+      const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Adjust for Monday as first day
+      firstDayOfWeek.setDate(now.getDate() - diff);
+      
+      timeLabel = `Minggu ${firstDayOfWeek.toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })} - ${now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+      
+      // Create 7 day labels (Mon-Sun)
+      const dayNames = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+      labels = dayNames;
+      
+      // Initialize counts and qtys arrays with zeros
+      orderCounts = new Array(7).fill(0);
+      orderQtys = new Array(7).fill(0);
+      
+      // Filter orders for this week
+      const weekStart = new Date(firstDayOfWeek);
+      weekStart.setHours(0, 0, 0, 0);
+      
+      const weekEnd = new Date(firstDayOfWeek);
+      weekEnd.setDate(weekStart.getDate() + 7);
+      weekEnd.setHours(0, 0, 0, 0);
+      
+      const weekOrders = data.filter(order => {
+        const orderDate = new Date(order.created_at || order.date || order.timestamp || 0);
+        return orderDate >= weekStart && orderDate < weekEnd;
+      });
+      
+      // Count orders and sum quantities by day
+      weekOrders.forEach(order => {
+        const orderDate = new Date(order.created_at || order.date || order.timestamp || 0);
+        let dayIndex = orderDate.getDay() - 1; // 0 = Monday, ..., 6 = Sunday
+        if (dayIndex < 0) dayIndex = 6; // Sunday becomes index 6
+        
+        orderCounts[dayIndex]++;
+        orderQtys[dayIndex] += getOrderQty(order);
+      });
+      break;
+      
+    case 'bulan': // This month (daily)
+      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      timeLabel = `${now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`;
+      
+      // Create labels for each day of the month
+      labels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
+      
+      // Initialize counts and qtys arrays with zeros
+      orderCounts = new Array(daysInMonth).fill(0);
+      orderQtys = new Array(daysInMonth).fill(0);
+      
+      // Filter orders for this month
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      
+      const monthOrders = data.filter(order => {
+        const orderDate = new Date(order.created_at || order.date || order.timestamp || 0);
+        return orderDate >= monthStart && orderDate < monthEnd;
+      });
+      
+      // Count orders and sum quantities by day
+      monthOrders.forEach(order => {
+        const orderDate = new Date(order.created_at || order.date || order.timestamp || 0);
+        const day = orderDate.getDate() - 1; // 0-indexed
+        orderCounts[day]++;
+        orderQtys[day] += getOrderQty(order);
+      });
+      break;
+      
+    case 'tahun': // This year (monthly)
+      timeLabel = `${now.getFullYear()}`;
+      
+      // Create labels for each month
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+      labels = monthNames;
+      
+      // Initialize counts and qtys arrays with zeros
+      orderCounts = new Array(12).fill(0);
+      orderQtys = new Array(12).fill(0);
+      
+      // Filter orders for this year
+      const yearStart = new Date(now.getFullYear(), 0, 1);
+      const yearEnd = new Date(now.getFullYear() + 1, 0, 1);
+      
+      const yearOrders = data.filter(order => {
+        const orderDate = new Date(order.created_at || order.date || order.timestamp || 0);
+        return orderDate >= yearStart && orderDate < yearEnd;
+      });
+      
+      // Count orders and sum quantities by month
+      yearOrders.forEach(order => {
+        const orderDate = new Date(order.created_at || order.date || order.timestamp || 0);
+        const month = orderDate.getMonth();
+        orderCounts[month]++;
+        orderQtys[month] += getOrderQty(order);
+      });
+      break;
+      
+    case 'custom':
+      // For custom period, we'll just show a placeholder for now
+      // In a real implementation, you would show a date picker and process data accordingly
+      timeLabel = 'Custom Period (Coming Soon)';
+      labels = ['Custom'];
+      orderCounts = [0];
+      orderQtys = [0];
+      break;
+  }
+  
+  return { labels, orderCounts, orderQtys, timeLabel };
 }
 
 // Export functions for use in index.html
