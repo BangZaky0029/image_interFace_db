@@ -41,6 +41,9 @@ let currentPrintData = null;
 async function fetchOrderDetail(idOrder) {
   try {
     const effectiveBaseURL = getEffectiveBaseURL();
+    console.log('Fetching order detail from:', `${effectiveBaseURL}/order_detail`);
+    console.log('Order ID to filter:', idOrder);
+    
     const response = await fetch(`${effectiveBaseURL}/order_detail`);
     
     if (!response.ok) {
@@ -48,9 +51,13 @@ async function fetchOrderDetail(idOrder) {
     }
     
     const data = await response.json();
+    console.log('Order detail data received:', data);
     
     // Filter data by id_order
-    return data.filter(detail => detail.id_order === idOrder);
+    const filteredData = data.filter(detail => detail.id_order === idOrder);
+    console.log('Filtered order detail data:', filteredData);
+    
+    return filteredData;
   } catch (error) {
     console.error('Error fetching order detail:', error);
     showNotification('Gagal mengambil data detail pesanan', 'error');
@@ -155,6 +162,9 @@ function convertPathToUrl(filePath, idOrderDetail) {
  * @param {string} orderId - Order ID
  */
 function showOrderDetailPopup(orderDetails, orderId) {
+  console.log('Showing order detail popup for order ID:', orderId);
+  console.log('Order details data:', orderDetails);
+  
   // Remove existing popup if any
   const existingPopup = document.querySelector('.popup-container');
   if (existingPopup) {
@@ -163,6 +173,16 @@ function showOrderDetailPopup(orderDetails, orderId) {
   
   // Get the first order detail for header information
   const firstDetail = orderDetails[0] || {};
+  console.log('First detail object used for header information:', firstDetail);
+  
+  // Check if order-specific fields are available
+  console.log('Checking order fields availability:', {
+    'platform exists': 'platform' in firstDetail,
+    'deadline exists': 'deadline' in firstDetail,
+    'nama_customer exists': 'nama_customer' in firstDetail,
+    'timestamp exists': 'timestamp' in firstDetail,
+    'status_print exists': 'status_print' in firstDetail
+  });
   
   // Create popup container
   const popupContainer = document.createElement('div');
@@ -222,6 +242,15 @@ function showOrderDetailPopup(orderDetails, orderId) {
   // Create order info section
   const orderInfoSection = document.createElement('div');
   orderInfoSection.className = 'info-section';
+  
+  // Log values for debugging
+  console.log('Order info values:', {
+    id_order: firstDetail.id_order,
+    platform: firstDetail.platform,
+    deadline: firstDetail.deadline,
+    status_print: firstDetail.status_print
+  });
+  
   orderInfoSection.innerHTML = `
     <h4>Informasi Pesanan</h4>
     <div class="info-item">
@@ -236,11 +265,22 @@ function showOrderDetailPopup(orderDetails, orderId) {
       <div class="info-label">Deadline</div>
       <div class="info-value">${firstDetail.deadline ? new Date(firstDetail.deadline).toLocaleDateString('id-ID') : '-'}</div>
     </div>
+    <div class="info-item">
+      <div class="info-label">Status Print</div>
+      <div class="info-value">${firstDetail.status_print || '-'}</div>
+    </div>
   `;
   
   // Create customer info section
   const customerInfoSection = document.createElement('div');
   customerInfoSection.className = 'info-section';
+  
+  // Log values for debugging
+  console.log('Customer info values:', {
+    nama_customer: firstDetail.nama_customer,
+    timestamp: firstDetail.timestamp
+  });
+  
   customerInfoSection.innerHTML = `
     <h4>Informasi Customer</h4>
     <div class="info-item">
