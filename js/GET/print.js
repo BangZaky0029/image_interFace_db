@@ -5,6 +5,30 @@
 
 // Import functions from endpoint.js and listItem.js
 import { fetchPrint, baseURL, showNotification } from '../../config/endpoint.js';
+
+// Fungsi untuk mendapatkan baseURL dari host saat ini
+const getBaseURL = () => {
+  // Determine the current host and port
+  const currentUrl = window.location.href;
+  const urlObj = new URL(currentUrl);
+  const host = urlObj.hostname;
+  
+  // Use the API server port (5000)
+  const apiPort = '5000';
+  return `http://${host}:${apiPort}`;
+};
+
+// Gunakan baseURL dari endpoint.js atau fallback ke host saat ini
+const getEffectiveBaseURL = () => {
+  if (typeof window.baseURL !== 'undefined') {
+    return window.baseURL;
+  } else if (typeof baseURL !== 'undefined') {
+    return baseURL;
+  } else {
+    return getBaseURL();
+  }
+};
+
 // Initialize the print table
 window.initPrintTable = function() {
   console.log('Initializing print table...');
@@ -184,7 +208,8 @@ window.deletePrint = function(printId) {
   // Implement print deletion functionality
   if (confirm(`Apakah Anda yakin ingin menghapus print dengan ID: ${printId}?`)) {
     // Call delete API endpoint
-    fetch(`${baseURL}/print/${printId}`, {
+    const effectiveBaseURL = getEffectiveBaseURL();
+    fetch(`${effectiveBaseURL}/print/${printId}`, {
       method: 'DELETE'
     })
     .then(response => {

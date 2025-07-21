@@ -8,6 +8,29 @@ import { fetchOrders, baseURL, showNotification } from '../../config/endpoint.js
 // Import fungsi untuk konversi ID admin ke nama
 import { getAdminNameById } from '../../config/listItem.js';
 
+// Fungsi untuk mendapatkan baseURL dari host saat ini
+const getBaseURL = () => {
+  // Determine the current host and port
+  const currentUrl = window.location.href;
+  const urlObj = new URL(currentUrl);
+  const host = urlObj.hostname;
+  
+  // Use the API server port (5000)
+  const apiPort = '5000';
+  return `http://${host}:${apiPort}`;
+};
+
+// Gunakan baseURL dari endpoint.js atau fallback ke host saat ini
+const getEffectiveBaseURL = () => {
+  if (typeof window.baseURL !== 'undefined') {
+    return window.baseURL;
+  } else if (typeof baseURL !== 'undefined') {
+    return baseURL;
+  } else {
+    return getBaseURL();
+  }
+};
+
 // Initialize the orders table
 window.initOrdersTable = function() {
   console.log('Initializing orders table...');
@@ -198,7 +221,8 @@ window.deleteOrder = function(orderId) {
   // Implement order deletion functionality
   if (confirm(`Apakah Anda yakin ingin menghapus pesanan dengan ID: ${orderId}?`)) {
     // Call delete API endpoint
-    fetch(`${baseURL}/api/order/delete/${orderId}`, {
+    const effectiveBaseURL = getEffectiveBaseURL();
+    fetch(`${effectiveBaseURL}/api/order/delete/${orderId}`, {
       method: 'DELETE'
     })
     .then(response => {
@@ -219,4 +243,4 @@ window.deleteOrder = function(orderId) {
       showNotification(`Gagal menghapus pesanan: ${error.message}`, 'error');
     });
   }
-}
+};

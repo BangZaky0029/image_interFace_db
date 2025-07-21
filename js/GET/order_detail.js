@@ -6,6 +6,29 @@
 // Import functions from endpoint.js
 import { baseURL, showNotification } from '../../config/endpoint.js';
 
+// Fungsi untuk mendapatkan baseURL dari host saat ini
+const getBaseURL = () => {
+  // Determine the current host and port
+  const currentUrl = window.location.href;
+  const urlObj = new URL(currentUrl);
+  const host = urlObj.hostname;
+  
+  // Use the API server port (5000)
+  const apiPort = '5000';
+  return `http://${host}:${apiPort}`;
+};
+
+// Gunakan baseURL dari endpoint.js atau fallback ke host saat ini
+const getEffectiveBaseURL = () => {
+  if (typeof window.baseURL !== 'undefined') {
+    return window.baseURL;
+  } else if (typeof baseURL !== 'undefined') {
+    return baseURL;
+  } else {
+    return getBaseURL();
+  }
+};
+
 // Global variables to store data
 let currentOrderDetail = null;
 let currentPrintData = null;
@@ -17,7 +40,8 @@ let currentPrintData = null;
  */
 async function fetchOrderDetail(idOrder) {
   try {
-    const response = await fetch(`${baseURL}/order_detail`);
+    const effectiveBaseURL = getEffectiveBaseURL();
+    const response = await fetch(`${effectiveBaseURL}/order_detail`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -112,15 +136,17 @@ function convertPathToUrl(filePath, idOrderDetail) {
   // Normalize path separators
   let normalizedPath = filePath.replace(/\\/g, '/');
   
+  const effectiveBaseURL = getEffectiveBaseURL();
+  
   // Extract relative path from PRINT folder
   if (normalizedPath.includes('D:/assets/PRINT/')) {
     const relativePath = normalizedPath.replace('D:/assets/PRINT/', '');
-    return `${baseURL}/print-image/${relativePath}`;
+    return `${effectiveBaseURL}/print-image/${relativePath}`;
   }
   
   // Just use the filename as a last resort
   const filename = normalizedPath.split('/').pop();
-  return `${baseURL}/print-image/${filename}`;
+  return `${effectiveBaseURL}/print-image/${filename}`;
 }
 
 /**

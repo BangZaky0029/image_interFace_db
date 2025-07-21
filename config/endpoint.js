@@ -1,7 +1,55 @@
 // Ganti baseURL ini sesuai domain/server lo nanti
-// const baseURL = 'http://127.0.0.1:5000';
-// const baseURL = 'http://localhost:5000'; // Jangan gunakan localhost
 const baseURL = 'http://100.124.58.32:5000';
+// const baseURL = 'http://localhost:5000'; // Jangan gunakan localhost
+// const baseURL = 'http://100.124.58.32:5000';
+// const baseURL = 'http://192.168.0.95:5000';
+
+// Daftar IP alternatif yang bisa digunakan
+const alternativeURLs = [
+  'http://127.0.0.1:5000',
+  'http://100.124.58.32:5000',
+  'http://192.168.0.95:5000',
+  'http://100.126.94.51:5000'
+];
+
+// Fungsi untuk mencoba URL alternatif
+const tryAlternativeURL = (failedURL) => {
+  console.log(`URL ${failedURL} gagal, mencoba alternatif...`);
+  const currentIndex = alternativeURLs.indexOf(failedURL);
+  const nextIndex = (currentIndex + 1) % alternativeURLs.length;
+  return alternativeURLs[nextIndex];
+};
+
+// Fungsi fetch dengan fallback ke URL alternatif
+async function fetchWithFallback(endpoint, options = {}) {
+  let currentURL = baseURL;
+  let attempts = 0;
+  const maxAttempts = alternativeURLs.length;
+  
+  while (attempts < maxAttempts) {
+    try {
+      const fullURL = endpoint.startsWith('http') ? endpoint : `${currentURL}${endpoint}`;
+      console.log(`Mencoba fetch dari: ${fullURL}`);
+      
+      const response = await fetch(fullURL, options);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response;
+    } catch (error) {
+      console.error(`Error fetching from ${currentURL}: ${error.message}`);
+      attempts++;
+      
+      if (attempts < maxAttempts) {
+        currentURL = tryAlternativeURL(currentURL);
+        console.log(`Mencoba dengan URL alternatif: ${currentURL}`);
+      } else {
+        console.error('Semua URL alternatif gagal');
+        throw error;
+      }
+    }
+  }
+}
 
 // Fungsi untuk menampilkan notifikasi
 const showNotification = (message, type = 'info') => {
@@ -67,10 +115,7 @@ const showNotification = (message, type = 'info') => {
 // Fungsi untuk mengambil data admin
 const fetchAdmin = async () => {
   try {
-    const response = await fetch(`${baseURL}/admin`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
+    const response = await fetchWithFallback('/admin');
     const data = await response.json();
     showNotification('Data admin berhasil dimuat', 'success');
     return data;
@@ -84,10 +129,7 @@ const fetchAdmin = async () => {
 // Fungsi untuk mengambil data gambar
 const fetchImages = async () => {
   try {
-    const response = await fetch(`${baseURL}/images`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
+    const response = await fetchWithFallback('/images');
     const data = await response.json();
     showNotification('Data gambar berhasil dimuat', 'success');
     return data;
@@ -101,10 +143,7 @@ const fetchImages = async () => {
 // Fungsi untuk mengambil data motif
 const fetchMotif = async () => {
   try {
-    const response = await fetch(`${baseURL}/motif`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
+    const response = await fetchWithFallback('/motif');
     const data = await response.json();
     showNotification('Data motif berhasil dimuat', 'success');
     return data;
@@ -118,10 +157,7 @@ const fetchMotif = async () => {
 // Fungsi untuk mengambil data detail pesanan
 const fetchOrderDetail = async () => {
   try {
-    const response = await fetch(`${baseURL}/order_detail`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
+    const response = await fetchWithFallback('/order_detail');
     const data = await response.json();
     showNotification('Data detail pesanan berhasil dimuat', 'success');
     return data;
@@ -135,10 +171,7 @@ const fetchOrderDetail = async () => {
 // Fungsi untuk mengambil data pesanan
 const fetchOrders = async () => {
   try {
-    const response = await fetch(`${baseURL}/orders`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
+    const response = await fetchWithFallback('/orders');
     const data = await response.json();
     showNotification('Data pesanan berhasil dimuat', 'success');
     return data;
@@ -152,10 +185,7 @@ const fetchOrders = async () => {
 // Fungsi untuk mengambil data print
 const fetchPrint = async () => {
   try {
-    const response = await fetch(`${baseURL}/print`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
+    const response = await fetchWithFallback('/print');
     const data = await response.json();
     showNotification('Data print berhasil dimuat', 'success');
     return data;
@@ -169,10 +199,7 @@ const fetchPrint = async () => {
 // Fungsi untuk mengambil data produk
 const fetchProducts = async () => {
   try {
-    const response = await fetch(`${baseURL}/products`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
+    const response = await fetchWithFallback('/products');
     const data = await response.json();
     showNotification('Data produk berhasil dimuat', 'success');
     return data;
@@ -186,10 +213,7 @@ const fetchProducts = async () => {
 // Fungsi untuk mengambil data ukuran
 const fetchSizes = async () => {
   try {
-    const response = await fetch(`${baseURL}/sizes`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
+    const response = await fetchWithFallback('/sizes');
     const data = await response.json();
     showNotification('Data ukuran berhasil dimuat', 'success');
     return data;
@@ -211,5 +235,8 @@ export {
   fetchOrders,
   fetchPrint,
   fetchProducts,
-  fetchSizes
+  fetchSizes,
+  fetchWithFallback,
+  tryAlternativeURL,
+  alternativeURLs
 };
