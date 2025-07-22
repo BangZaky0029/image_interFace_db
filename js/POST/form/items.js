@@ -36,6 +36,10 @@ export function addItem() {
         <label for="nama_${itemCounter}">Nama :</label>
         <input type="text" id="nama_${itemCounter}" required />
       </div>
+      <div class="form-group second-name-container" id="second_name_container_${itemCounter}" style="display: none; transition: all 0.3s ease;">
+        <label for="second_name_${itemCounter}">Second Name :</label>
+        <input type="text" id="second_name_${itemCounter}" />
+      </div>
       <div class="form-group" style="margin-bottom: 16px;">
         <label for="font_color_${itemCounter}" 
         style="
@@ -175,6 +179,24 @@ function selectProductType(itemId, type, targetBtn) {
   buttons.forEach(btn => btn.classList.remove('active'));
   targetBtn.classList.add('active');
   document.getElementById(`type_product_${itemId}`).value = type;
+  
+  // Toggle second_name field based on product type
+  const secondNameContainer = document.getElementById(`second_name_container_${itemId}`);
+  if (secondNameContainer) {
+    if (type.includes('2 SISI')) {
+      // Show second_name field with animation
+      secondNameContainer.style.display = 'block';
+      secondNameContainer.style.maxHeight = '100px';
+      secondNameContainer.style.opacity = '1';
+    } else {
+      // Hide second_name field with animation
+      secondNameContainer.style.opacity = '0';
+      secondNameContainer.style.maxHeight = '0';
+      setTimeout(() => {
+        secondNameContainer.style.display = 'none';
+      }, 300);
+    }
+  }
 }
 
 // Fungsi untuk menampilkan pencarian gambar

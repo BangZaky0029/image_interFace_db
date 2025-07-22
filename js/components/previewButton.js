@@ -154,6 +154,9 @@ async function openPreviewModalForItem(itemCard) {
   // Get form data
   const id_image = itemCard.querySelector('[id^="id_image_"]').value;
   const nama = itemCard.querySelector('[id^="nama_"]').value;
+  const itemId = itemCard.id.split('-')[1];
+  const secondNameElement = document.getElementById(`second_name_${itemId}`);
+  const second_name = secondNameElement ? secondNameElement.value : '';
   const qty = parseInt(itemCard.querySelector('[id^="qty_"]').value) || 1;
   const type_product = itemCard.querySelector('[id^="type_product_"]').value;
   const product_note = itemCard.querySelector('[id^="product_note_"]').value;
@@ -166,10 +169,78 @@ async function openPreviewModalForItem(itemCard) {
     return;
   }
   
-  // Dalam fungsi openPreviewModalForItem, modifikasi bagian try-catch:
+  // Check if this is a two-sided product
+  const isTwoSided = type_product.includes('2 SISI');
   
   try {
-  // Call preview API
+    // Show loading state
+    grid.innerHTML = '<div class="loading-spinner"></div>';
+    
+    // For two-sided products, we need to make two API calls
+    if (isTwoSided) {
+      // First side preview
+      let side1Result = await getPreviewData({
+        id_image, 
+        nama, 
+        second_name,
+        qty, 
+        type_product, 
+        product_note,
+        font_color,
+        side: 1
+      });
+      
+      // Second side preview
+      let side2Result = await getPreviewData({
+        id_image, 
+        nama, 
+        second_name,
+        qty, 
+        type_product, 
+        product_note,
+        font_color,
+        side: 2
+      });
+      
+      // Display both previews
+      if (side1Result && side2Result) {
+        displayTwoSidedPreview(grid, side1Result.data, side2Result.data, nama, second_name, id_image, qty, type_product, product_note);
+      }
+    } else {
+      // Single-sided product - make one API call
+      let result = await getPreviewData({
+        id_image, 
+        nama, 
+        qty, 
+        type_product, 
+        product_note,
+        font_color
+      });
+      
+      if (result) {
+        // Process the preview response
+        await processPreviewResponse(true, result.resp, result.data, grid, nama, id_image, qty, type_product, product_note);
+      }
+    }
+    
+    showNotification('success', 'Preview berhasil dibuat');
+  } catch (err) {
+    console.error('Preview error:', err);
+    grid.innerHTML = `
+      <div class="preview-error" style="text-align: center; padding: 40px; color: #dc3545;">
+        <div style="font-size: 18px; margin-bottom: 10px;">⚠️ Error</div>
+        <div style="font-size: 14px;">${err.message || 'Error saat membuat preview'}</div>
+        <div style="margin-top: 15px;">
+          <button onclick="openPreviewModalForItem(arguments[0])" class="btn btn-secondary">Retry</button>
+        </div>
+      </div>
+    `;
+    showNotification('error', 'Gagal membuat preview');
+  }
+}
+
+// Helper function to get preview data from API
+async function getPreviewData(requestData) {
   let retryCount = 0;
   let success = false;
   let resp;
@@ -180,14 +251,7 @@ async function openPreviewModalForItem(itemCard) {
       resp = await fetch(`http://${serverIP}:5000/api/order/preview`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          id_image, 
-          nama, 
-          qty, 
-          type_product, 
-          product_note,
-          font_color 
-        })
+        body: JSON.stringify(requestData)
       });
       
       data = await resp.json();
@@ -203,138 +267,207 @@ async function openPreviewModalForItem(itemCard) {
     throw new Error('Tidak dapat terhubung ke server dengan semua IP yang tersedia');
   }
   
-  if (resp.ok && data.preview_url) {
-    // Success - show preview
-    grid.innerHTML = `
-      <div class="preview-img-item" style="position: relative; overflow: hidden;">
-        <img src="${data.preview_url}" 
-             alt="Preview Design" class="zoomable-img"
-             style="max-width: 400px; width: 80vw; height: auto; display: block; margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.3s ease; cursor: zoom-in;" 
-             onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiNmMGYwZjAiLz48dGV4dCB4PSIyMDAiIHk9IjE1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE2IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+'; this.style.border='2px dashed #ccc';" />
-        <div class="preview-info" style="margin-top: 15px; text-align: center;">
-          <div style="font-weight: 600; font-size: 16px; color: #333;">${nama}</div>
-          <div style="color: #666; font-size: 14px;">ID: ${id_image} | Qty: ${qty} | ${type_product}</div>
-          ${product_note ? `<div style="color: #888; font-size: 12px; margin-top: 5px;">Note: ${product_note}</div>` : ''}
-          <div style="color: #28a745; font-size: 12px; margin-top: 10px;">
-            ✓ Preview ID: ${data.id_print || 'N/A'}
-          </div>
-        </div>
-      </div>
-    `;
-    
-    // Setup zoom functionality
-    const img = grid.querySelector('.zoomable-img');
-    if (img) {
-      let zoomLevel = 1;
-      const zoomSteps = [1, 1.2, 1.4, 1.6, 1.8, 2.0];
-      let currentStep = 0;
-      let translateX = 0;
-      let translateY = 0;
-      let isDragMode = false;
-      let isDragging = false;
-      let startX = 0;
-      let startY = 0;
-
-      const updateTransform = () => {
-        img.style.transform = `scale(${zoomLevel}) translate(${translateX}px, ${translateY}px)`;
-      };
-
-      // Click to zoom
-      img.addEventListener('click', (e) => {
-        if (isDragMode) return;
-        currentStep = (currentStep + 1) % zoomSteps.length;
-        zoomLevel = zoomSteps[currentStep];
-        if (zoomLevel === 1) {
-          translateX = 0;
-          translateY = 0;
-        }
-        updateTransform();
-        img.style.cursor = zoomLevel > 1 ? 'zoom-out' : 'zoom-in';
-      });
-
-      // Key handlers
-      const handleKeyDown = (e) => {
-        if (e.key === ' ' && zoomLevel > 1) {
-          e.preventDefault();
-          isDragMode = true;
-          img.style.cursor = 'grab';
-        }
-      };
-
-      const handleKeyUp = (e) => {
-        if (e.key === ' ') {
-          isDragMode = false;
-          isDragging = false;
-          img.style.cursor = zoomLevel > 1 ? 'zoom-out' : 'zoom-in';
-        }
-      };
-
-      // Drag handlers
-      const handleMouseDown = (e) => {
-        if (isDragMode) {
-          isDragging = true;
-          startX = e.clientX;
-          startY = e.clientY;
-          img.style.cursor = 'grabbing';
-        }
-      };
-
-      const handleMouseMove = (e) => {
-        if (!isDragging) return;
-        e.preventDefault();
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        translateX += dx / zoomLevel;
-        translateY += dy / zoomLevel;
-        startX = e.clientX;
-        startY = e.clientY;
-        updateTransform();
-      };
-
-      const handleMouseUp = (e) => {
-        isDragging = false;
-        if (isDragMode) {
-          img.style.cursor = 'grab';
-        } else {
-          img.style.cursor = zoomLevel > 1 ? 'zoom-out' : 'zoom-in';
-        }
-      };
-
-      // Add listeners
-      document.addEventListener('keydown', handleKeyDown);
-      document.addEventListener('keyup', handleKeyUp);
-      img.addEventListener('mousedown', handleMouseDown);
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-
-      // Store for removal
-      currentPreviewListeners = {
-        keydown: handleKeyDown,
-        keyup: handleKeyUp,
-        mousemove: handleMouseMove,
-        mouseup: handleMouseUp
-      };
-    }
-    
-    showNotification('success', 'Preview berhasil dibuat');
-    
-  } else {
-    // Error from API
+  if (!resp.ok || !data.preview_url) {
     throw new Error(data.error || 'Preview gagal dibuat');
   }
   
-  } catch (err) {
-    console.error('Preview error:', err);
-    grid.innerHTML = `
-      <div class="preview-error" style="text-align: center; padding: 40px; color: #dc3545;">
-        <div style="font-size: 18px; margin-bottom: 10px;">⚠️ Error</div>
-        <div style="font-size: 14px;">${err.message || 'Error saat membuat preview'}</div>
-        <div style="margin-top: 15px;">
-          <button onclick="openPreviewModalForItem(arguments[0])" class="btn btn-secondary">Retry</button>
+  return { resp, data };
+}
+
+// Display a single preview
+function displaySinglePreview(container, previewData, nama, id_image, qty, type_product, product_note) {
+  container.innerHTML = `
+    <div class="preview-img-item" style="position: relative; overflow: hidden;">
+      <img src="${previewData.preview_url}" 
+           alt="Preview Design" class="zoomable-img"
+           style="max-width: 400px; width: 80vw; height: auto; display: block; margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.3s ease; cursor: zoom-in;" 
+           onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiNmMGYwZjAiLz48dGV4dCB4PSIyMDAiIHk9IjE1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE2IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+'; this.style.border='2px dashed #ccc';" />
+      <div class="preview-info" style="margin-top: 15px; text-align: center;">
+        <div style="font-weight: 600; font-size: 16px; color: #333;">${nama}</div>
+        <div style="color: #666; font-size: 14px;">ID: ${id_image} | Qty: ${qty} | ${type_product}</div>
+        ${product_note ? `<div style="color: #888; font-size: 12px; margin-top: 5px;">Note: ${product_note}</div>` : ''}
+        <div style="color: #28a745; font-size: 12px; margin-top: 10px;">
+          ✓ Preview ID: ${previewData.id_print || 'N/A'}
         </div>
       </div>
-    `;
-    showNotification('error', 'Gagal membuat preview');
+    </div>
+  `;
+  
+  setupZoomFunctionality(container.querySelector('.zoomable-img'));
+}
+
+// Display two-sided preview
+function displayTwoSidedPreview(container, side1Data, side2Data, nama, second_name, id_image, qty, type_product, product_note) {
+  // Determine what to display for side 2 (second_name or nama if second_name is empty)
+  const side2Name = second_name && second_name.trim() !== '' ? second_name : nama;
+  
+  container.innerHTML = `
+    <div class="preview-container" style="display: flex; flex-direction: column; gap: 20px;">
+      <div class="preview-side" style="text-align: center;">
+        <h3 style="margin-bottom: 10px; color: #333; font-size: 16px;">SISI 1</h3>
+        <div class="preview-img-item" style="position: relative; overflow: hidden;">
+          <img src="${side1Data.preview_url}" 
+               alt="Preview Design Side 1" class="zoomable-img"
+               style="max-width: 400px; width: 80vw; height: auto; display: block; margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.3s ease; cursor: zoom-in;" 
+               onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiNmMGYwZjAiLz48dGV4dCB4PSIyMDAiIHk9IjE1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE2IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+'; this.style.border='2px dashed #ccc';" />
+          <div class="preview-info" style="margin-top: 10px; text-align: center;">
+            <div style="font-weight: 600; font-size: 14px; color: #333;">${nama}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="preview-side" style="text-align: center;">
+        <h3 style="margin-bottom: 10px; color: #333; font-size: 16px;">SISI 2</h3>
+        <div class="preview-img-item" style="position: relative; overflow: hidden;">
+          <img src="${side2Data.preview_url}" 
+               alt="Preview Design Side 2" class="zoomable-img"
+               style="max-width: 400px; width: 80vw; height: auto; display: block; margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.3s ease; cursor: zoom-in;" 
+               onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiNmMGYwZjAiLz48dGV4dCB4PSIyMDAiIHk9IjE1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE2IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+PC9zdmc+'; this.style.border='2px dashed #ccc';" />
+          <div class="preview-info" style="margin-top: 10px; text-align: center;">
+            <div style="font-weight: 600; font-size: 14px; color: #333;">${side2Name}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="preview-details" style="text-align: center; margin-top: 10px;">
+        <div style="color: #666; font-size: 14px;">ID: ${id_image} | Qty: ${qty} | ${type_product}</div>
+        ${product_note ? `<div style="color: #888; font-size: 12px; margin-top: 5px;">Note: ${product_note}</div>` : ''}
+        <div style="color: #28a745; font-size: 12px; margin-top: 10px;">
+          ✓ Preview ID: ${side1Data.id_print || 'N/A'}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Setup zoom functionality for both images
+  container.querySelectorAll('.zoomable-img').forEach(img => {
+    setupZoomFunctionality(img);
+  });
+}
+
+// Setup zoom functionality for an image
+function setupZoomFunctionality(img) {
+  if (!img) return;
+  
+  let zoomLevel = 1;
+  const zoomSteps = [1, 1.2, 1.4, 1.6, 1.8, 2.0];
+  let currentStep = 0;
+  let translateX = 0;
+  let translateY = 0;
+  let isDragMode = false;
+  let isDragging = false;
+  let startX = 0;
+  let startY = 0;
+
+  const updateTransform = () => {
+    img.style.transform = `scale(${zoomLevel}) translate(${translateX}px, ${translateY}px)`;
+  };
+
+  // Click to zoom
+  img.addEventListener('click', (e) => {
+    if (isDragMode) return;
+    currentStep = (currentStep + 1) % zoomSteps.length;
+    zoomLevel = zoomSteps[currentStep];
+    if (zoomLevel === 1) {
+      translateX = 0;
+      translateY = 0;
+    }
+    updateTransform();
+    img.style.cursor = zoomLevel > 1 ? 'zoom-out' : 'zoom-in';
+  });
+
+  // Key handlers
+  const handleKeyDown = (e) => {
+    if (e.key === ' ' && zoomLevel > 1) {
+      e.preventDefault();
+      isDragMode = true;
+      img.style.cursor = 'grab';
+    }
+  };
+
+  const handleKeyUp = (e) => {
+    if (e.key === ' ') {
+      isDragMode = false;
+      isDragging = false;
+      img.style.cursor = zoomLevel > 1 ? 'zoom-out' : 'zoom-in';
+    }
+  };
+
+  // Drag handlers
+  const handleMouseDown = (e) => {
+    if (isDragMode) {
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      img.style.cursor = 'grabbing';
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    translateX += dx / zoomLevel;
+    translateY += dy / zoomLevel;
+    startX = e.clientX;
+    startY = e.clientY;
+    updateTransform();
+  };
+
+  const handleMouseUp = (e) => {
+    isDragging = false;
+    if (isDragMode) {
+      img.style.cursor = 'grab';
+    } else {
+      img.style.cursor = zoomLevel > 1 ? 'zoom-out' : 'zoom-in';
+    }
+  };
+
+  // Add listeners
+  document.addEventListener('keydown', handleKeyDown);
+  document.addEventListener('keyup', handleKeyUp);
+  img.addEventListener('mousedown', handleMouseDown);
+  document.addEventListener('mousemove', handleMouseMove);
+  document.addEventListener('mouseup', handleMouseUp);
+
+  // Store for removal
+  img._zoomListeners = {
+    keydown: handleKeyDown,
+    keyup: handleKeyUp,
+    mousemove: handleMouseMove,
+    mouseup: handleMouseUp
+  };
+}
+
+// Process preview response
+async function processPreviewResponse(success, resp, data, grid, nama, id_image, qty, type_product, product_note) {
+  try {
+    if (!success) {
+      throw new Error('Tidak dapat terhubung ke server dengan semua IP yang tersedia');
+    }
+    
+    if (resp.ok && data.preview_url) {
+      // Success - display the preview using the existing function
+      displaySinglePreview(grid, data, nama, id_image, qty, type_product, product_note);
+      return true;
+    } else {
+      // Error from API
+      throw new Error(data.error || 'Preview gagal dibuat');
+    }
+  } catch (err) {
+      console.error('Preview error:', err);
+      grid.innerHTML = `
+        <div class="preview-error" style="text-align: center; padding: 40px; color: #dc3545;">
+          <div style="font-size: 18px; margin-bottom: 10px;">⚠️ Error</div>
+          <div style="font-size: 14px;">${err.message || 'Error saat membuat preview'}</div>
+          <div style="margin-top: 15px;">
+            <button onclick="openPreviewModalForItem(arguments[0])" class="btn btn-secondary">Retry</button>
+          </div>
+        </div>
+      `;
+      showNotification('error', 'Gagal membuat preview');
+      return false;
   }
 }
 
