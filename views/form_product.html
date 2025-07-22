@@ -1,53 +1,65 @@
 <!-- Product Form content -->
-<link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/product_mobile.css">
-<div>
-    <h2>Form Product - Create Order</h2>
-    <form id="orderForm">
-        <label for="id_order">ID Order:</label>
-        <input type="text" id="id_order" name="id_order" required><br>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="http://100.124.58.32:5000/style/style_view/form.css">
+<link rel="stylesheet" href="http://100.124.58.32:5000/style/Mobile_view/form_mobile.css">
+
+<div class="message" id="successMessage" style="display: none;"></div>
+<div class="message error" id="errorMessage" style="display: none;"></div>
+
+<div class="form-container">
+    <h2 class="form-title">Form Produk - Buat Pesanan</h2>
+    <form id="orderForm" class="form-step active">
+        <div class="form-row">
+            <div class="form-group required">
+                <label for="id_order">ID Pesanan:</label>
+                <input type="text" id="id_order" name="id_order" required placeholder="Masukkan ID pesanan">
+                <div class="error-text"></div>
+            </div>
+            <div class="form-group required">
+                <label for="id_admin">Admin:</label>
+                <select id="id_admin" name="id_admin" required>
+                    <option value="">-- Pilih Admin --</option>
+                    <!-- Opsi admin akan diisi secara dinamis oleh populateAdminDropdown -->
+                </select>
+                <div class="error-text"></div>
+            </div>
+        </div>
         
-        <label for="id_admin">Admin:</label>
-        <select id="id_admin" name="id_admin" required>
-            <option value="">-- Pilih Admin --</option>
-            <!-- Opsi admin akan diisi secara dinamis oleh populateAdminDropdown -->
-        </select><br>
+        <div class="form-row">
+            <div class="form-group required">
+                <label for="platform">Platform:</label>
+                <input type="text" id="platform" name="platform" required placeholder="Masukkan platform">
+                <div class="error-text"></div>
+            </div>
+            <div class="form-group required">
+                <label for="nama_customer">Nama Pelanggan:</label>
+                <input type="text" id="nama_customer" name="nama_customer" required placeholder="Masukkan nama pelanggan">
+                <div class="error-text"></div>
+            </div>
+        </div>
         
-        <label for="platform">Platform:</label>
-        <input type="text" id="platform" name="platform" required><br>
+        <div class="form-row">
+            <div class="form-group required">
+                <label for="deadline">Deadline:</label>
+                <input type="date" id="deadline" name="deadline" required>
+                <div class="error-text"></div>
+            </div>
+            <div class="form-group">
+                <label for="status_print">Status Cetak:</label>
+                <select id="status_print" name="status_print">
+                    <option value="pending">Pending</option>
+                    <option value="printed">Sudah Dicetak</option>
+                    <option value="cancelled">Dibatalkan</option>
+                </select>
+                <div class="error-text"></div>
+            </div>
+        </div>
         
-        <label for="nama_customer">Nama Customer:</label>
-        <input type="text" id="nama_customer" name="nama_customer" required><br>
-        
-        <label for="deadline">Deadline:</label>
-        <input type="date" id="deadline" name="deadline" required><br>
-        
-        <label for="status_print">Status Print:</label>
-        <select id="status_print" name="status_print">
-            <option value="pending">Pending</option>
-            <option value="printed">Printed</option>
-            <option value="cancelled">Cancelled</option>
-        </select><br>
-        
-        <button type="submit">Submit</button>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Pesanan</button>
     </form>
-    <script>
-        document.getElementById('orderForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const formData = new FormData(this);
-            const data = {};
-            formData.forEach((value, key) => { data[key] = value; });
-            fetch('/order', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            }).then(response => response.json()).then(result => {
-                alert('Order created successfully!');
-                // Optionally, reset form or redirect
-            }).catch(error => {
-                alert('Error creating order: ' + error);
-            });
-        });
-    </script>
+    <script type="module" src="/js/POST/form/form_product.js"></script>
 </div>

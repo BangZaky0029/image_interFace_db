@@ -1,22 +1,56 @@
-/* CSS File: form.css */
+/* CSS File: form.css - Updated with modern UI/UX principles */
+:root {
+  --primary-color: #667eea;
+  --primary-dark: #5a6fd8;
+  --secondary-color: #764ba2;
+  --secondary-dark: #6a4190;
+  --success-color: #48bb78;
+  --success-light: #c6f6d5;
+  --error-color: #e53e3e;
+  --error-light: #fed7d7;
+  --text-color: #2d3748;
+  --text-light: #718096;
+  --border-color: #e2e8f0;
+  --border-radius: 12px;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  background-color: #f7fafc;
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
 .message {
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
+  padding: 1rem 1.5rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1.5rem;
   text-align: center;
   font-weight: 500;
   animation: slideDown 0.3s ease-out;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .success-message {
-  background-color: #c6f6d5;
-  color: #2f855a;
+  background-color: var(--success-light);
+  color: var(--success-color);
   border: 1px solid #9ae6b4;
 }
 
 .error-message {
-  background-color: #fed7d7;
-  color: #c53030;
+  background-color: var(--error-light);
+  color: var(--error-color);
   border: 1px solid #feb2b2;
 }
 
@@ -27,95 +61,140 @@
 
 .form-container {
   background: white;
-  padding: 2rem;
-  border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+  padding: 2.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
   margin-bottom: 2rem;
   animation: fadeIn 0.5s ease-out;
   max-height: 85vh;
   overflow: hidden;
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* Progress bar */
+/* Progress bar - Modern design with step indicators */
 .form-progress {
   display: flex;
   justify-content: center;
-  gap: 2rem;
-  margin-bottom: 1.5rem;
-}
-
-.form-progress .step {
-  padding: 0.5rem 1rem;
-  border-radius: 10px;
-  background-color: #e2e8f0;
-  color: #684a64;
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.form-progress .step.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  transform: scale(1.05);
-}
-
-.form-progress .step {
+  align-items: center;
+  gap: 0;
+  margin: 2rem auto 3rem;
+  max-width: 600px;
   position: relative;
-  overflow: hidden;
 }
 
-.form-progress.step-2 .step:nth-child(2) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  transform: scale(1.05);
-  transition: all 0.5s ease;
+.form-progress::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 15%;
+  right: 15%;
+  height: 2px;
+  background-color: var(--border-color);
+  transform: translateY(-50%);
+  z-index: 1;
 }
 
-
-.step {
-  padding: 0.6rem 1.2rem;
-  background: #e2e8f0;
-  border-radius: 20px;
-  font-weight: 600;
-  color: #4a5568;
-  transition: 0.3s ease;
+.form-progress .step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  padding: 0;
+  width: 50%;
+  transition: var(--transition);
 }
 
-.step.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  transform: scale(1.05);
-}
-
-.line {
+.form-progress .step::before {
+  content: attr(data-step);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 40px;
-  height: 3px;
-  background: #006eff;
+  height: 40px;
+  border-radius: 50%;
+  background-color: white;
+  border: 2px solid var(--border-color);
+  color: var(--text-light);
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  transition: var(--transition);
 }
 
-/* Step visibility */
+.form-progress .step::after {
+  content: attr(data-title);
+  color: var(--text-light);
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+.form-progress .step.active::before {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  border-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.25);
+}
+
+.form-progress .step.active::after {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.form-progress.step-2 .step:nth-child(2)::before {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  border-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.25);
+}
+
+.form-progress.step-2 .step:nth-child(2)::after {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.form-progress.step-2::before {
+  background: linear-gradient(to right, var(--primary-color) 0%, var(--secondary-color) 100%);
+}
+
+/* Step visibility - Improved transitions and layout */
 .form-step {
   display: none;
   opacity: 0;
-  transform: translateX(100%);
-  transition: all 0.5s ease-in-out;
-  position: absolute;
+  transform: translateX(50px);
+  transition: all 0.4s ease-in-out;
+  position: relative;
   width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  padding: 60px;
-  background: rgba(255, 255, 255, 0.9);
-  margin: 1rem;
-  border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
   z-index: 1;
+  margin-bottom: 2rem;
 }
 
 .form-step.active {
   display: block;
   opacity: 1;
   transform: translateX(0);
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-step.slide-left {
+  animation: slideLeft 0.4s forwards;
+}
+
+@keyframes slideLeft {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(-50px); opacity: 0; }
 }
 
 /* Ensure step 1 elements remain interactive when returning from step 2 */
@@ -142,14 +221,76 @@
 #itemsContainer {
   max-height: calc(65vh - 150px);
   overflow-y: auto;
-  padding-right: 10px;
-  margin-bottom: 25px; /* Increased for better spacing */
+  padding-right: 15px;
+  margin-bottom: 30px;
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e0 #f7fafc;
+  scrollbar-color: var(--primary-color) #f7fafc;
   position: relative;
   flex: 1;
   scroll-behavior: smooth;
-  padding-bottom: 40px; /* Increased from 20px to 40px for more space */
+  padding-bottom: 40px;
+}
+
+/* Item card styling */
+.item-card {
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+  position: relative;
+}
+
+.item-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.item-number {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+}
+
+.item-number::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.remove-item-btn {
+  background-color: #fff5f5;
+  color: var(--error-color);
+  border: 1px solid #fed7d7;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.remove-item-btn:hover {
+  background-color: #fed7d7;
+  color: #c53030;
 }
 
 /* Efek bayangan untuk menunjukkan scroll */
@@ -219,7 +360,191 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Form group styling */
+.form-group {
   margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-color);
+  font-size: 0.95rem;
+  transition: var(--transition);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background-color: white;
+  color: var(--text-color);
+  font-size: 1rem;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #a0aec0;
+}
+
+/* Required field indicator */
+.form-group.required label::after {
+  content: '*';
+  color: var(--error-color);
+  margin-left: 4px;
+}
+
+/* Validation styling */
+.form-group.error input,
+.form-group.error select,
+.form-group.error textarea {
+  border-color: var(--error-color);
+  background-color: #fff5f5;
+}
+
+.form-group.error label {
+  color: var(--error-color);
+}
+
+.form-group .error-text {
+  color: var(--error-color);
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  display: none;
+}
+
+.form-group.error .error-text {
+  display: block;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.form-group.success input,
+.form-group.success select,
+.form-group.success textarea {
+  border-color: var(--success-color);
+  background-color: #f0fff4;
+}
+
+/* Button styling */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+  border: none;
+  outline: none;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
+}
+
+.btn-secondary {
+  background-color: #edf2f7;
+  color: var(--text-color);
+}
+
+.btn-secondary:hover {
+  background-color: #e2e8f0;
+}
+
+.btn-info {
+  background-color: #4299e1;
+  color: white;
+}
+
+.btn-info:hover {
+  background-color: #3182ce;
+}
+
+.btn-add {
+  background-color: #48bb78;
+  color: white;
+}
+
+.btn-add:hover {
+  background-color: #38a169;
+}
+
+.btn-submit {
+  min-width: 120px;
+  position: relative;
+}
+
+.btn-submit.loading {
+  color: transparent;
+}
+
+.btn-submit.loading::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Form actions container */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
 }
 
 /* Image popup styling */

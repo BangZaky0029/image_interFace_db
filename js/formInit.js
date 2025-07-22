@@ -177,17 +177,9 @@ async function validateStep1() {
     return module.validateStep1();
   }
   
-  // Fallback validation
-  const idAdmin = document.getElementById('id_admin')?.value?.trim();
-  const namaCustomer = document.getElementById('nama_customer')?.value?.trim();
-  const deadline = document.getElementById('deadline')?.value?.trim();
-  const platform = document.getElementById('platform')?.value?.trim();
-  
-  if (!idAdmin || !namaCustomer || !deadline || !platform) {
-    showMessage('Mohon lengkapi semua field yang diperlukan', true);
-    return false;
-  }
-  return true;
+  // Fallback message if module fails to load
+  showMessage('Terjadi kesalahan saat memvalidasi form', true);
+  return false;
 }
 
 // Step transition functions using multiStep module

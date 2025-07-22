@@ -1,0 +1,182 @@
+/* Mobile optimization for form */
+
+@media (max-width: 768px) {
+  /* Form container */
+  .form-container {
+    padding: 1.5rem;
+    margin: 1rem;
+    max-width: 100%;
+  }
+
+  /* Progress bar */
+  .form-progress {
+    margin: 1.5rem auto 2rem;
+    max-width: 100%;
+  }
+
+  .form-progress .step::after {
+    font-size: 0.8rem;
+  }
+
+  .form-progress .step::before {
+    width: 35px;
+    height: 35px;
+    font-size: 0.9rem;
+  }
+
+  /* Form layout */
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-group label {
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 0.7rem 0.9rem;
+    font-size: 0.95rem;
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 0.7rem 1.2rem;
+    font-size: 0.95rem;
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .form-footer {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .form-footer .btn {
+    order: 2;
+  }
+
+  .form-footer .btn-prev {
+    order: 3;
+  }
+
+  .form-footer .btn-add-item {
+    order: 1;
+  }
+
+  /* Item cards */
+  .item-card {
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .item-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .remove-item-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Image selection */
+  .image-selection {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .image-brand-btn {
+    width: 100%;
+  }
+
+  /* Product types */
+  .product-types {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .product-type-group {
+    width: 100%;
+  }
+
+  /* Messages */
+  .message {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  /* Image popup */
+  .image-popup-content {
+    width: 95vw;
+    max-height: 80vh;
+  }
+
+  .images-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    padding: 15px;
+  }
+
+  .image-container img {
+    height: 120px;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  .form-container {
+    padding: 1rem;
+    margin: 0.5rem;
+  }
+
+  .form-progress::before {
+    left: 10%;
+    right: 10%;
+  }
+
+  .form-progress .step::before {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+
+  .form-progress .step::after {
+    font-size: 0.75rem;
+  }
+
+  .btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .item-card {
+    padding: 1rem;
+  }
+
+  .images-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .image-container img {
+    height: 100px;
+  }
+}

@@ -1,32 +1,14 @@
 // js/POST/form/multiStep.js
 import { showMessage } from './message.js';
+import { validateForm } from './validation.js';
 
 // Note: Event listeners are now handled in formInit.js to prevent conflicts
 // This module now only exports utility functions
 
+// Use the new validation system
 export function validateStep1() {
-  const idAdmin = document.getElementById('id_admin')?.value?.trim();
-  const namaCustomer = document.getElementById('nama_customer')?.value?.trim();
-  const deadline = document.getElementById('deadline')?.value?.trim();
-  const platform = document.getElementById('platform')?.value?.trim();
-
-  if (!idAdmin) {
-    showMessage('Admin harus dipilih', true);
-    return false;
-  }
-  if (!namaCustomer) {
-    showMessage('Nama Customer harus diisi', true);
-    return false;
-  }
-  if (!deadline) {
-    showMessage('Deadline harus diisi', true);
-    return false;
-  }
-  if (!platform) {
-    showMessage('Platform harus dipilih', true);
-    return false;
-  }
-  return true;
+  const step1 = document.getElementById('step1');
+  return validateForm(step1);
 }
 
 export function transitionToStep2() {

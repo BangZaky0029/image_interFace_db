@@ -29,56 +29,49 @@ export function addItem() {
   itemCard.innerHTML = `
     <div class="item-header">
       <span class="item-number">Item #${itemCounter}</span>
-      <button type="button" class="remove-item-btn" data-item-id="${itemCounter}">Remove</button>
+      <button type="button" class="remove-item-btn" data-item-id="${itemCounter}"><i class="fas fa-times"></i> Hapus</button>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label for="nama_${itemCounter}">Nama :</label>
-        <input type="text" id="nama_${itemCounter}" required />
+      <div class="form-group required">
+        <label for="nama_${itemCounter}">Nama:</label>
+        <input type="text" id="nama_${itemCounter}" required placeholder="Masukkan nama" />
+        <div class="error-text"></div>
       </div>
       <div class="form-group second-name-container" id="second_name_container_${itemCounter}" style="display: none; transition: all 0.3s ease;">
-        <label for="second_name_${itemCounter}">Second Name :</label>
-        <input type="text" id="second_name_${itemCounter}" />
+        <label for="second_name_${itemCounter}">Nama Belakang:</label>
+        <input type="text" id="second_name_${itemCounter}" placeholder="Masukkan nama belakang" />
+        <div class="error-text"></div>
       </div>
-      <div class="form-group" style="margin-bottom: 16px;">
-        <label for="font_color_${itemCounter}" 
-        style="
-        display: inline-block; 
-        width: 100px; 
-        font-weight: 600; 
-        color: #555;">
-          Font Color :
-        </label>
+      <div class="form-group">
+        <label for="font_color_${itemCounter}">Warna Font:</label>
         <input 
           type="color" 
           id="font_color_${itemCounter}" 
           value="#000000"
           class="font-color-picker"
           data-container-id="color-target-${itemCounter}"
-          style="border: 2px solid #ccc; 
-          width: 200px; 
-          height: 45px; 
-          border-radius: 8px; 
-          cursor: pointer;"
         />
       </div>
-      <label>ID Image :</label>
-      <div class="image-selection">
-        <button type="button" class="image-brand-btn" data-item-id="${itemCounter}" data-brand="Marsoto">Marsoto</button>
-        <button type="button" class="image-brand-btn" data-item-id="${itemCounter}" data-brand="MNK">MNK</button>
-      </div>
-      <input type="hidden" id="id_image_${itemCounter}" required />
-      <div class="image-search-container" id="image_search_container_${itemCounter}" style="display: none;">
-        <input type="text" id="image_search_input_${itemCounter}" placeholder="Cari berdasarkan nama file..." class="image-search-input">
-        <div class="search-results" id="search_results_${itemCounter}"></div>
-      </div>
-      <div class="selected-image-info" id="selected_image_info_${itemCounter}" style="display: none;">
-        <span class="selected-image-label"></span>
-        <div class="selected-image-thumbnail" id="selected_image_thumbnail_${itemCounter}"></div>
+      <div class="form-group required">
+        <label>ID Image:</label>
+        <div class="image-selection">
+          <button type="button" class="image-brand-btn" data-item-id="${itemCounter}" data-brand="Marsoto">Marsoto</button>
+          <button type="button" class="image-brand-btn" data-item-id="${itemCounter}" data-brand="MNK">MNK</button>
+        </div>
+        <input type="hidden" id="id_image_${itemCounter}" required />
+        <div class="error-text"></div>
+        <div class="image-search-container" id="image_search_container_${itemCounter}" style="display: none;">
+          <input type="text" id="image_search_input_${itemCounter}" placeholder="Cari berdasarkan nama file..." class="image-search-input">
+          <div class="search-results" id="search_results_${itemCounter}"></div>
+        </div>
+        <div class="selected-image-info" id="selected_image_info_${itemCounter}" style="display: none;">
+          <span class="selected-image-label"></span>
+          <div class="selected-image-thumbnail" id="selected_image_thumbnail_${itemCounter}"></div>
+        </div>
       </div>
     </div>
-    <div class="form-group">
-      <label>Type Product :</label>
+    <div class="form-group required">
+      <label>Tipe Produk:</label>
       <div class="product-types">
         ${Object.entries(productTypeGroups).map(([groupName, types]) => `
           <div class="product-type-group">
@@ -92,19 +85,21 @@ export function addItem() {
         `).join('')}
       </div>
       <input type="hidden" id="type_product_${itemCounter}" required />
+      <div class="error-text"></div>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label for="qty_${itemCounter}">Quantity:</label>
+      <div class="form-group required">
+        <label for="qty_${itemCounter}">Jumlah:</label>
         <input type="number" id="qty_${itemCounter}" value="1" min="1" required />
+        <div class="error-text"></div>
       </div>
     </div>
     <div class="form-group">
-      <label for="product_note_${itemCounter}">Product Note :</label>
-      <textarea id="product_note_${itemCounter}" rows="3"></textarea>
+      <label for="product_note_${itemCounter}">Catatan Produk:</label>
+      <textarea id="product_note_${itemCounter}" rows="3" placeholder="Tambahkan catatan jika diperlukan"></textarea>
     </div>
     <div class="form-group preview-btn-group">
-      <button type="button" class="preview-btn" data-item-id="${itemCounter}">Preview Design</button>
+      <button type="button" class="preview-btn" data-item-id="${itemCounter}"><i class="fas fa-eye"></i> Lihat Desain</button>
     </div>
   `;
   container.appendChild(itemCard);
