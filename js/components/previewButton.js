@@ -378,7 +378,15 @@ function setupZoomFunctionality(img) {
 
   // Key handlers
   const handleKeyDown = (e) => {
+    // Only prevent default for space key if the event target is the image or its container
+    // This prevents interference with text input fields
     if (e.key === ' ' && zoomLevel > 1) {
+      const target = e.target;
+      // Check if the target is an input field or textarea
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        // Allow default behavior for input fields
+        return;
+      }
       e.preventDefault();
       isDragMode = true;
       img.style.cursor = 'grab';
@@ -438,6 +446,12 @@ function setupZoomFunctionality(img) {
     mousemove: handleMouseMove,
     mouseup: handleMouseUp
   };
+  
+  // Store in currentPreviewListeners for proper cleanup
+  currentPreviewListeners.keydown = handleKeyDown;
+  currentPreviewListeners.keyup = handleKeyUp;
+  currentPreviewListeners.mousemove = handleMouseMove;
+  currentPreviewListeners.mouseup = handleMouseUp;
 }
 
 // Process preview response
