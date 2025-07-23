@@ -33,7 +33,7 @@ export function addItem() {
     </div>
     <div class="form-row">
       <div class="form-group required">
-        <label for="nama_${itemCounter}">Nama:</label>
+        <label for="nama_${itemCounter}">Nama Depan:</label>
         <input type="text" id="nama_${itemCounter}" required placeholder="Masukkan nama" />
         <div class="error-text"></div>
       </div>

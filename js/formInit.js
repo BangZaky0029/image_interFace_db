@@ -413,7 +413,7 @@ function addItemManual() {
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label for="nama_${itemCount}">Nama:</label>
+        <label for="nama_${itemCount}">Nama Depan:</label>
         <input type="text" id="nama_${itemCount}" required />
       </div>
       <div class="form-group">
